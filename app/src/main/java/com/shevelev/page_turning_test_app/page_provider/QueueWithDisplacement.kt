@@ -1,4 +1,4 @@
-package com.shevelev.comics_viewer.ui.activities.view_comics.bitmap_repository
+package com.shevelev.page_turning_test_app.page_provider
 
 import java.util.*
 

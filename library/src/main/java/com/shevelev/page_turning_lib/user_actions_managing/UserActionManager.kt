@@ -1,9 +1,33 @@
-package com.shevelev.comics_viewer.ui.activities.view_comics.user_actions_managing
+/*
+ * Copyright (c) 2021 Alexander Shevelev
+ *
+ * Licensed under the MIT License;
+ * ---------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+package com.shevelev.page_turning_lib.user_actions_managing
 
 import android.graphics.PointF
 import android.util.Log
 import android.view.MotionEvent
-import com.shevelev.comics_viewer.common.structs.Size
+import com.shevelev.page_turning_lib.common.structs.Size
 
 class UserActionManager(private val managedObject: IUserActionsManaged, screenSize: Size?) {
     private var currentState: Int
@@ -115,53 +139,88 @@ class UserActionManager(private val managedObject: IUserActionsManaged, screenSi
         currentState = StatesCodes.Init
         eventsTransformer = EventsTransformer(screenSize!!)
         transitionsMatrix = Array(6) { arrayOfNulls<TransitionFunc>(8) }
-        transitionsMatrix[StatesCodes.Init][EventsCodes.None] =  { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Init) }
+        transitionsMatrix[StatesCodes.Init][EventsCodes.None] =  { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Init) }
         transitionsMatrix[StatesCodes.Init][EventsCodes.OneFingerDown] = { event: Event, viewStateCode: ViewStateCodes -> fromInitOnOneFingerDown(event.points, event.pressure, viewStateCode) }
-        transitionsMatrix[StatesCodes.Init][EventsCodes.NextFingerDown] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Init) }
-        transitionsMatrix[StatesCodes.Init][EventsCodes.Move] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Init) }
-        transitionsMatrix[StatesCodes.Init][EventsCodes.NextFingerUp] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Init) }
-        transitionsMatrix[StatesCodes.Init][EventsCodes.OneFingerUp] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Init) }
-        transitionsMatrix[StatesCodes.Init][EventsCodes.Cancel] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Init) }
-        transitionsMatrix[StatesCodes.Init][EventsCodes.OneFingerDownInMenuArea] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.MenuMode) }
-        transitionsMatrix[StatesCodes.Final][EventsCodes.None] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Final) }
-        transitionsMatrix[StatesCodes.Final][EventsCodes.OneFingerDown] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Final) }
-        transitionsMatrix[StatesCodes.Final][EventsCodes.NextFingerDown] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Final) }
-        transitionsMatrix[StatesCodes.Final][EventsCodes.Move] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Final) }
-        transitionsMatrix[StatesCodes.Final][EventsCodes.NextFingerUp] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Final) }
-        transitionsMatrix[StatesCodes.Final][EventsCodes.OneFingerUp] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Final) }
-        transitionsMatrix[StatesCodes.Final][EventsCodes.Cancel] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Final) }
-        transitionsMatrix[StatesCodes.Final][EventsCodes.OneFingerDownInMenuArea] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Final) }
-        transitionsMatrix[StatesCodes.Curving][EventsCodes.None] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Curving) }
-        transitionsMatrix[StatesCodes.Curving][EventsCodes.OneFingerDown] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Curving) }
+        transitionsMatrix[StatesCodes.Init][EventsCodes.NextFingerDown] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Init) }
+        transitionsMatrix[StatesCodes.Init][EventsCodes.Move] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Init) }
+        transitionsMatrix[StatesCodes.Init][EventsCodes.NextFingerUp] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Init) }
+        transitionsMatrix[StatesCodes.Init][EventsCodes.OneFingerUp] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Init) }
+        transitionsMatrix[StatesCodes.Init][EventsCodes.Cancel] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Init) }
+        transitionsMatrix[StatesCodes.Init][EventsCodes.OneFingerDownInMenuArea] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.MenuMode) }
+        transitionsMatrix[StatesCodes.Final][EventsCodes.None] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Final) }
+        transitionsMatrix[StatesCodes.Final][EventsCodes.OneFingerDown] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Final) }
+        transitionsMatrix[StatesCodes.Final][EventsCodes.NextFingerDown] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Final) }
+        transitionsMatrix[StatesCodes.Final][EventsCodes.Move] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Final) }
+        transitionsMatrix[StatesCodes.Final][EventsCodes.NextFingerUp] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Final) }
+        transitionsMatrix[StatesCodes.Final][EventsCodes.OneFingerUp] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Final) }
+        transitionsMatrix[StatesCodes.Final][EventsCodes.Cancel] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Final) }
+        transitionsMatrix[StatesCodes.Final][EventsCodes.OneFingerDownInMenuArea] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Final) }
+        transitionsMatrix[StatesCodes.Curving][EventsCodes.None] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Curving) }
+        transitionsMatrix[StatesCodes.Curving][EventsCodes.OneFingerDown] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Curving) }
         transitionsMatrix[StatesCodes.Curving][EventsCodes.NextFingerDown] = { event: Event, viewStateCode: ViewStateCodes? -> cancelCurving(event.points, event.pressure) }
         transitionsMatrix[StatesCodes.Curving][EventsCodes.Move] = { event: Event, viewStateCode: ViewStateCodes? -> processCurving(event.points, event.pressure) }
-        transitionsMatrix[StatesCodes.Curving][EventsCodes.NextFingerUp] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Curving) }
+        transitionsMatrix[StatesCodes.Curving][EventsCodes.NextFingerUp] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Curving) }
         transitionsMatrix[StatesCodes.Curving][EventsCodes.OneFingerUp] = { event: Event, viewStateCode: ViewStateCodes? -> completeCurving(event.points, event.pressure) }
         transitionsMatrix[StatesCodes.Curving][EventsCodes.Cancel] = { event: Event, viewStateCode: ViewStateCodes? -> completeCurving(event.points, event.pressure) }
-        transitionsMatrix[StatesCodes.Curving][EventsCodes.OneFingerDownInMenuArea] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Curving) }
-        transitionsMatrix[StatesCodes.Resizing][EventsCodes.None] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Resizing) }
-        transitionsMatrix[StatesCodes.Resizing][EventsCodes.OneFingerDown] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Resizing) }
+        transitionsMatrix[StatesCodes.Curving][EventsCodes.OneFingerDownInMenuArea] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Curving) }
+        transitionsMatrix[StatesCodes.Resizing][EventsCodes.None] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Resizing) }
+        transitionsMatrix[StatesCodes.Resizing][EventsCodes.OneFingerDown] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Resizing) }
         transitionsMatrix[StatesCodes.Resizing][EventsCodes.NextFingerDown] = { event: Event, viewStateCode: ViewStateCodes? -> processResizing(event.points) }
         transitionsMatrix[StatesCodes.Resizing][EventsCodes.Move] = { event: Event, viewStateCode: ViewStateCodes? -> processResizing(event.points) }
         transitionsMatrix[StatesCodes.Resizing][EventsCodes.NextFingerUp] = { event: Event, viewStateCode: ViewStateCodes -> processResizingOneFingerUp(event.points, viewStateCode, event.fingerIndex) }
-        transitionsMatrix[StatesCodes.Resizing][EventsCodes.OneFingerUp] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Resizing) }
-        transitionsMatrix[StatesCodes.Resizing][EventsCodes.Cancel] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Resizing) }
-        transitionsMatrix[StatesCodes.Resizing][EventsCodes.OneFingerDownInMenuArea] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Resizing) }
-        transitionsMatrix[StatesCodes.Dragging][EventsCodes.None] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Dragging) }
-        transitionsMatrix[StatesCodes.Dragging][EventsCodes.OneFingerDown] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Dragging) }
+        transitionsMatrix[StatesCodes.Resizing][EventsCodes.OneFingerUp] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Resizing) }
+        transitionsMatrix[StatesCodes.Resizing][EventsCodes.Cancel] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Resizing) }
+        transitionsMatrix[StatesCodes.Resizing][EventsCodes.OneFingerDownInMenuArea] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Resizing) }
+        transitionsMatrix[StatesCodes.Dragging][EventsCodes.None] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Dragging) }
+        transitionsMatrix[StatesCodes.Dragging][EventsCodes.OneFingerDown] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Dragging) }
         transitionsMatrix[StatesCodes.Dragging][EventsCodes.NextFingerDown] = { event: Event, viewStateCode: ViewStateCodes? -> startResizing(event.points) }
         transitionsMatrix[StatesCodes.Dragging][EventsCodes.Move] = { event: Event, viewStateCode: ViewStateCodes? -> processDragging(event.points) }
-        transitionsMatrix[StatesCodes.Dragging][EventsCodes.NextFingerUp] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Dragging) }
+        transitionsMatrix[StatesCodes.Dragging][EventsCodes.NextFingerUp] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Dragging) }
         transitionsMatrix[StatesCodes.Dragging][EventsCodes.OneFingerUp] = { event: Event, viewStateCode: ViewStateCodes? -> processFromDraggingToFinal(event.points) }
         transitionsMatrix[StatesCodes.Dragging][EventsCodes.Cancel] = { event: Event, viewStateCode: ViewStateCodes? -> processFromDraggingToFinal(event.points) }
-        transitionsMatrix[StatesCodes.Dragging][EventsCodes.OneFingerDownInMenuArea] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.Dragging) }
-        transitionsMatrix[StatesCodes.MenuMode][EventsCodes.None] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.MenuMode) }
-        transitionsMatrix[StatesCodes.MenuMode][EventsCodes.OneFingerDown] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.MenuMode) }
-        transitionsMatrix[StatesCodes.MenuMode][EventsCodes.NextFingerDown] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.MenuMode) }
-        transitionsMatrix[StatesCodes.MenuMode][EventsCodes.Move] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.MenuMode) }
-        transitionsMatrix[StatesCodes.MenuMode][EventsCodes.NextFingerUp] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.MenuMode) }
+        transitionsMatrix[StatesCodes.Dragging][EventsCodes.OneFingerDownInMenuArea] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.Dragging) }
+        transitionsMatrix[StatesCodes.MenuMode][EventsCodes.None] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.MenuMode) }
+        transitionsMatrix[StatesCodes.MenuMode][EventsCodes.OneFingerDown] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.MenuMode) }
+        transitionsMatrix[StatesCodes.MenuMode][EventsCodes.NextFingerDown] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.MenuMode) }
+        transitionsMatrix[StatesCodes.MenuMode][EventsCodes.Move] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.MenuMode) }
+        transitionsMatrix[StatesCodes.MenuMode][EventsCodes.NextFingerUp] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.MenuMode) }
         transitionsMatrix[StatesCodes.MenuMode][EventsCodes.OneFingerUp] = { event: Event?, viewStateCode: ViewStateCodes? -> showMenu() }
-        transitionsMatrix[StatesCodes.MenuMode][EventsCodes.Cancel] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.MenuMode) }
-        transitionsMatrix[StatesCodes.MenuMode][EventsCodes.OneFingerDownInMenuArea] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(StatesCodes.MenuMode) }
+        transitionsMatrix[StatesCodes.MenuMode][EventsCodes.Cancel] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.MenuMode) }
+        transitionsMatrix[StatesCodes.MenuMode][EventsCodes.OneFingerDownInMenuArea] = { event: Event?, viewStateCode: ViewStateCodes? -> doNothing(
+            StatesCodes.MenuMode) }
     }
 }

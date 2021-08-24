@@ -3,17 +3,15 @@ package com.shevelev.page_turning_test_app.page_provider
 import android.content.Context
 import android.graphics.*
 import android.util.Log
-import com.shevelev.comics_viewer.ui.activities.view_comics.bitmap_repository.BitmapRepositoryImpl
-import com.shevelev.comics_viewer.ui.activities.view_comics.bitmap_repository.BitmapRepository
-import com.shevelev.comics_viewer.ui.activities.view_comics.CurlPage
-import com.shevelev.comics_viewer.ui.activities.view_comics.IPageProvider
-import com.shevelev.comics_viewer.ui.activities.view_comics.PageSide
+import com.shevelev.page_turning_lib.CurlPage
+import com.shevelev.page_turning_lib.PageProvider
+import com.shevelev.page_turning_lib.PageSide
 import java.io.IOException
 
 /**
  * Provide textures for pages and update pages
  */
-internal class PageProviderImpl(context: Context) : IPageProvider {
+internal class PageProviderImpl(context: Context) : PageProvider {
 
     private val repository: BitmapRepository
     override val pageCount: Int

@@ -22,8 +22,6 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib
+package com.shevelev.page_turning_lib.user_actions_managing
 
-enum class CurlState {
-    Left, Right, None
-}
+typealias TransitionFunc = (Event, ViewStateCodes) -> Int

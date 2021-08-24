@@ -1,9 +1,9 @@
-package com.shevelev.comics_viewer.ui.activities.view_comics.bitmap_repository
+package com.shevelev.page_turning_test_app.page_provider
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import com.shevelev.comics_viewer.ui.activities.view_comics.ResizingState
+import com.shevelev.page_turning_lib.ResizingState
 import com.shevelev.page_turning_test_app.R
 import java.util.*
 
