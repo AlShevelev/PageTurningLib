@@ -22,13 +22,16 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib
-
-import android.graphics.RectF
-import com.shevelev.page_turning_lib.common.structs.SizeF
+package com.shevelev.page_turning_lib.user_actions_managing
 
 /**
- * Information about renderer view
- * [viewAreaSize] Size of view area [px]
+ * States of the state machine
  */
-class RendererViewInfo(val viewRect: RectF, val viewAreaSize: SizeF)
+enum class StateCodes {
+    Init,
+    Curving,
+    Resizing,
+    Dragging,
+    Final,
+    MenuMode
+}

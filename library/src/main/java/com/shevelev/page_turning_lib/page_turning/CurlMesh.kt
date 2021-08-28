@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib
+package com.shevelev.page_turning_lib.page_turning
 
 import android.graphics.Color
 import android.graphics.PointF

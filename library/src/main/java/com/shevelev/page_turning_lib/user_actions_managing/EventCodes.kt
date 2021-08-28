@@ -22,6 +22,18 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.common.structs
+package com.shevelev.page_turning_lib.user_actions_managing
 
-class Pair<T>(var value1: T, var value2: T)
+/**
+ * Events of the state machine
+ */
+enum class EventCodes {
+    None,
+    OneFingerDown,
+    NextFingerDown,
+    Move,
+    NextFingerUp,
+    OneFingerUp,
+    Cancel,
+    OneFingerDownInHotArea
+}

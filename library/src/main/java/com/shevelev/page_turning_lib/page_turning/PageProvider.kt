@@ -22,19 +22,26 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.common.structs
+package com.shevelev.page_turning_lib.page_turning
 
 /**
- * Created by shevelev on 06.10.2015.
+ * Provider for feeding 'book' with bitmaps which are used for rendering
+ * pages.
  */
-class Area(val leftTop: Point, val size: Size) {
+interface PageProvider {
+    /**
+     * Return number of pages available.
+     */
+    val pageCount: Int
 
     /**
-     * Is point inside an area?
+     * Called once new bitmaps/textures are needed. Width and height are in
+     * pixels telling the size it will be drawn on screen and following them
+     * ensures that aspect ratio remains. But it's possible to return bitmap
+     * of any size though. You should use provided CurlPage for storing page
+     * information for requested page number.<br></br>
+     * <br></br>
+     * Index is a number between 0 and getBitmapCount() - 1.
      */
-    fun isHit(testedPoint: Point): Boolean {
-        val rightBottom = Point(leftTop.left + size.width, leftTop.top + size.height)
-        return testedPoint.left >= leftTop.left && testedPoint.left <= rightBottom.left && testedPoint.top >= leftTop.top && testedPoint.top <= rightBottom.top
-    }
-
+    fun updatePage(page: CurlPage, width: Int, height: Int, index: Int)
 }

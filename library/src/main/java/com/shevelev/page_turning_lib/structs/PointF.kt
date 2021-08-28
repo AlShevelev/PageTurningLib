@@ -22,8 +22,6 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib
+package com.shevelev.page_turning_lib.structs
 
-enum class CurlTarget {
-    None, ToLeft, ToRight
-}
+class PointF(var left: Float, var top: Float) : FloatStructBase()

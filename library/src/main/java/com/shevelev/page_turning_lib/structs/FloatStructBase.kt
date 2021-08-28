@@ -22,16 +22,13 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.user_actions_managing
+package com.shevelev.page_turning_lib.structs
 
-/**
- * States of state machine
- */
-object StatesCodes {
-    const val Init = 0
-    const val Curving = 1
-    const val Resizing = 2
-    const val Dragging = 3
-    const val Final = 4
-    const val MenuMode = 5
+abstract class FloatStructBase {
+    protected fun floatToInt(value: Float, maxIntValue: Int): Int {
+        var tmpValue: Int
+        tmpValue = if (value.toDouble() == 0.0) 0 else if (value.toDouble() == 1.0) maxIntValue else (maxIntValue * value).toInt()
+        if (tmpValue < 0.0) tmpValue = 0 else if (tmpValue > maxIntValue) tmpValue = maxIntValue
+        return tmpValue
+    }
 }

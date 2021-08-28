@@ -22,6 +22,16 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.user_actions_managing
+package com.shevelev.page_turning_lib.structs
 
-typealias TransitionFunc = (Event, ViewStateCodes) -> Int
+/**
+ * Some area
+ * @property id unique id of the area
+ * @property leftTop left-top corner of the area (in pixels)
+ * @property size size of the area (in pixels)
+ */
+class Area(
+    val id: Int,
+    val leftTop: Point,
+    val size: Size
+)

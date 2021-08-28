@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib
+package com.shevelev.page_turning_lib.page_turning
 
-enum class CurlState {
-    Left, Right, None
+enum class CurlTarget {
+    None, ToLeft, ToRight
 }

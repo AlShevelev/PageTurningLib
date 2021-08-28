@@ -22,15 +22,15 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib
+package com.shevelev.page_turning_lib.page_turning
 
 import android.graphics.Color
 import android.graphics.PointF
 import android.graphics.RectF
 import android.opengl.GLSurfaceView
 import android.opengl.GLU
-import com.shevelev.page_turning_lib.common.structs.Pair
-import com.shevelev.page_turning_lib.common.structs.SizeF
+import com.shevelev.page_turning_lib.structs.Pair
+import com.shevelev.page_turning_lib.structs.SizeF
 import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10

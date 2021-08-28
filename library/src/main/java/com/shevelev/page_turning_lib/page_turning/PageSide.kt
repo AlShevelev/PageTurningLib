@@ -22,16 +22,8 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib
+package com.shevelev.page_turning_lib.page_turning
 
-/**
- * Holder for shadow vertex information.
- */
-internal class ShadowVertex {
-    var mPenumbraColor = 0.0
-    var mPenumbraX = 0.0
-    var mPenumbraY = 0.0
-    var mPosX = 0.0
-    var mPosY = 0.0
-    var mPosZ = 0.0
+enum class PageSide {
+    Back, Front, Both
 }

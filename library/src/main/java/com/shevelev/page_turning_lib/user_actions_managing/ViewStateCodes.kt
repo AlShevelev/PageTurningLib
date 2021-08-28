@@ -25,11 +25,16 @@
 package com.shevelev.page_turning_lib.user_actions_managing
 
 /**
- * State of view
+ * State of a view
  */
 enum class ViewStateCodes {
-    /** Size of mesh is equal to size of screen (mesh not zoomed)    */
+    /**
+     * Size of a mesh is equal to size of a screen (mesh is not zoomed)
+     */
     NotResized,
-    /** Size of mesh is not equal to size of screen (mesh zoomed)    */
+
+    /**
+     * Size of a mesh is not equal to size of a screen (mesh is zoomed)
+     */
     Resized
 }

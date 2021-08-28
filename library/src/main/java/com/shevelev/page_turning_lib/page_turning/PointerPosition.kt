@@ -22,21 +22,14 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.user_actions_managing
+package com.shevelev.page_turning_lib.page_turning
+
+import android.graphics.PointF
 
 /**
- * Events of state machine
+ * Simple holder for pointer position.
  */
-object EventsCodes {
-    /**
-     * Do nothing
-     */
-    const val None = 0
-    const val OneFingerDown = 1
-    const val NextFingerDown = 2
-    const val Move = 3
-    const val NextFingerUp = 4
-    const val OneFingerUp = 5
-    const val Cancel = 6
-    const val OneFingerDownInMenuArea = 7
+internal class PointerPosition {
+    var mPos = PointF()
+    var mPressure = 0f
 }

@@ -22,14 +22,8 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib
+package com.shevelev.page_turning_lib.page_turning
 
-import android.graphics.PointF
-
-/**
- * Simple holder for pointer position.
- */
-internal class PointerPosition {
-    var mPos = PointF()
-    var mPressure = 0f
+enum class CurlState {
+    Left, Right, None
 }

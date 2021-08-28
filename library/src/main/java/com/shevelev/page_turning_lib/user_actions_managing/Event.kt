@@ -30,11 +30,28 @@ import android.graphics.PointF
  * One event of state machine
  */
 class Event(
-    /** Code from EventsCodes  */
-    val code: Int,
-    /** Fingers points - may be null  */
+    /**
+     * Code from EventsCodes
+     */
+    val code: EventCodes,
+
+    /**
+     * Fingers points - may be null
+     */
     val points: List<PointF>?,
-    /** Size of finger's spot  */
+
+    /**
+     * Size of finger's spot
+     */
     val pressure: Float,
-    /** Index of finger in last action (for example - when we up one finger)  */
-    var fingerIndex: Int)
+
+    /**
+     * Index of finger in last action (for example - when we up one finger)
+     */
+    val fingerIndex: Int,
+
+    /**
+     * Id of a hot area (only for [EventCodes.OneFingerDownInHotArea] event)
+     */
+    val hotAreaId: Int?
+)

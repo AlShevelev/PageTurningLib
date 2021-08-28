@@ -25,24 +25,16 @@
 package com.shevelev.page_turning_lib.user_actions_managing
 
 import android.graphics.PointF
-import android.util.Log
 import android.view.MotionEvent
-import com.shevelev.page_turning_lib.helpers.PointsHelper.getDistance
-import com.shevelev.page_turning_lib.common.structs.Area
-import com.shevelev.page_turning_lib.common.structs.Point
-import com.shevelev.page_turning_lib.common.structs.Size
+import com.shevelev.page_turning_lib.structs.Area
+import com.shevelev.page_turning_lib.structs.Point
 
 /**
- * Transform device's events to state machine's events
+ * Transform device's touch and motion events to state machine's events
+ * @property hotAreas a set of "special" areas, touch in them fires OneFingerDownInHotArea event
  */
-class EventsTransformer(screenSize: Size) {
+class EventsTransformer(private val hotAreas: List<Area>) {
     private var lastMoveEvent: Event? = null
-
-    // // Menu hit area
-    private val menuArea : Area = Area(
-        Point((screenSize.width * 0.9f).toInt(), 0),
-        Size((screenSize.width * 0.1f).toInt(), (screenSize.height * 0.1f).toInt())
-    )
 
     /**
      * Reset internal state
@@ -63,114 +55,57 @@ class EventsTransformer(screenSize: Size) {
             }
         }
 
-        when (action) {
-            MotionEvent.ACTION_DOWN -> return getActionDownEvent(points, deviceEvent.pressure, deviceEvent)
-            MotionEvent.ACTION_POINTER_DOWN -> return getNotMoveEvent(EventsCodes.NextFingerDown, points, deviceEvent.pressure, deviceEvent)
-            MotionEvent.ACTION_MOVE -> return getMoveEvent(points, deviceEvent.pressure, deviceEvent)
-            MotionEvent.ACTION_UP -> return getNotMoveEvent(EventsCodes.OneFingerUp, points, deviceEvent.pressure, deviceEvent)
-            MotionEvent.ACTION_POINTER_UP -> return getNotMoveEvent(EventsCodes.NextFingerUp, points, deviceEvent.pressure, deviceEvent)
-            MotionEvent.ACTION_OUTSIDE -> return getNotMoveEvent(EventsCodes.Cancel, points, deviceEvent.pressure, deviceEvent)
-            MotionEvent.ACTION_CANCEL -> return getNotMoveEvent(EventsCodes.Cancel, points, deviceEvent.pressure, deviceEvent)
+        return when (action) {
+            MotionEvent.ACTION_DOWN -> getActionDownEvent(points, deviceEvent.pressure, deviceEvent)
+            MotionEvent.ACTION_POINTER_DOWN -> getNotMoveEvent(EventCodes.NextFingerDown, points, deviceEvent.pressure, deviceEvent)
+            MotionEvent.ACTION_MOVE -> getMoveEvent(points, deviceEvent.pressure, deviceEvent)
+            MotionEvent.ACTION_UP -> getNotMoveEvent(EventCodes.OneFingerUp, points, deviceEvent.pressure, deviceEvent)
+            MotionEvent.ACTION_POINTER_UP -> getNotMoveEvent(EventCodes.NextFingerUp, points, deviceEvent.pressure, deviceEvent)
+            MotionEvent.ACTION_OUTSIDE -> getNotMoveEvent(EventCodes.Cancel, points, deviceEvent.pressure, deviceEvent)
+            MotionEvent.ACTION_CANCEL -> getNotMoveEvent(EventCodes.Cancel, points, deviceEvent.pressure, deviceEvent)
+            else -> Event(EventCodes.None, points, deviceEvent.pressure, deviceEvent.actionIndex, null)
         }
-        return Event(EventsCodes.None, points, deviceEvent.pressure, deviceEvent.actionIndex)
     }
 
-    private fun getNotMoveEvent(code: Int, points: List<PointF>?, pressure: Float, deviceEvent: MotionEvent): Event {
+    private fun getNotMoveEvent(code: EventCodes, points: List<PointF>?, pressure: Float, deviceEvent: MotionEvent): Event {
         lastMoveEvent = null
-        return Event(code, points, pressure, deviceEvent.actionIndex)
+        return Event(code, points, pressure, deviceEvent.actionIndex, null)
     }
 
     private fun getActionDownEvent(points: List<PointF>?, pressure: Float, deviceEvent: MotionEvent): Event {
-        val lastPoint = Point(points!![0]!!.x.toInt(), points[0]!!.y.toInt())
-        val code = if (menuArea.isHit(lastPoint)) EventsCodes.OneFingerDownInMenuArea else EventsCodes.OneFingerDown
-        return Event(code, points, pressure, deviceEvent.actionIndex)
-    }
+        val lastPoint = Point(points!![0].x.toInt(), points[0].y.toInt())
 
-    private fun getMoveEvent(points: List<PointF>?, pressure: Float, deviceEvent: MotionEvent): Event {
-        /*
-        if(areEquals(currentMoveEvent, lastMoveEvent))
-            return new Event(EventsCodes.None, points, pressure);         // Cut equals Move-events to avoid noising
-        else
-        {
-            lastMoveEvent = currentMoveEvent;
-            return currentMoveEvent;
+        val hitAreaId = isHitHotArea(lastPoint)
+
+        return if (hitAreaId != null) {
+            Event(EventCodes.OneFingerDownInHotArea, points, pressure, deviceEvent.actionIndex, hitAreaId)
+        } else {
+            Event(EventCodes.OneFingerDown, points, pressure, deviceEvent.actionIndex, null)
         }
-        */
-        return Event(EventsCodes.Move, points, pressure, deviceEvent.actionIndex)
     }
 
-    private fun areEquals(e1: Event?, e2: Event?): Boolean {
-        if (e1 == null || e2 == null) return false
-        if (e1.code != e2.code) return false
-        val e1Points = e1.points
-        val e2Points = e2.points
-        if (e1Points == null && e2Points == null) return true
-        if (e1Points != null && e2Points != null) {
-            if (e1Points.size != e2Points.size) return false
-            val nearThreshold = 2.5f
-            if (e1Points.size == 1) // One-point event - calculate distance between events points
-            {
-                if (getDistance(e1Points[0], e2Points[0]) < nearThreshold) return true
-            } else  // Multi-points event - calculate distance between points in every event
-            {
-                val e1PointsDistance = getDistance(e1Points)
-                val e2PointsDistance = getDistance(e2Points)
-                if (Math.abs(e1PointsDistance - e2PointsDistance) < nearThreshold) // Merge events with near distances
-                    return true
+    private fun getMoveEvent(points: List<PointF>?, pressure: Float, deviceEvent: MotionEvent): Event =
+        Event(EventCodes.Move, points, pressure, deviceEvent.actionIndex, null)
+
+    /**
+     * Is the point inside one of the hot area?
+     * @return the hit area id
+     */
+    private fun isHitHotArea(testedPoint: Point): Int? {
+        hotAreas.forEach { area ->
+            with(area) {
+                val rightBottom = Point(leftTop.left + size.width, leftTop.top + size.height)
+
+                val isHit = testedPoint.left >= leftTop.left &&
+                    testedPoint.left <= rightBottom.left &&
+                    testedPoint.top >= leftTop.top &&
+                    testedPoint.top <= rightBottom.top
+
+                if (isHit) {
+                    return area.id
+                }
             }
         }
-        return false
+        return null
     }
-
-    fun logTouchEvent(me: MotionEvent) {
-        val action = me.actionMasked
-        val pointersTotal = me.pointerCount
-        val x = FloatArray(pointersTotal)
-        val y = FloatArray(pointersTotal)
-        val id = FloatArray(pointersTotal)
-        for (i in 0 until pointersTotal) {
-            x[i] = me.getX(i)
-            y[i] = me.getY(i)
-            id[i] = me.getPointerId(i).toFloat()
-        }
-        var logData = "Action: "
-        when (action) {
-            MotionEvent.ACTION_DOWN -> logData += "Down"
-            MotionEvent.ACTION_MOVE -> logData += "Move"
-            MotionEvent.ACTION_POINTER_DOWN -> logData += "Pointer Down"
-            MotionEvent.ACTION_UP -> logData += "Up"
-            MotionEvent.ACTION_POINTER_UP -> logData += "Pointer Up"
-            MotionEvent.ACTION_OUTSIDE -> logData += "Outside"
-            MotionEvent.ACTION_CANCEL -> logData += "Cancel"
-        }
-        logData += "; pointersTotal: $pointersTotal"
-        for (i in 0 until pointersTotal) {
-            logData += "; [pointerIndex: $i"
-            logData += "; id: " + id[i]
-            logData += "; value1: " + x[i]
-            logData += "; value2: " + y[i] + "]"
-        }
-        Log.d("TOUCH_EV", logData)
-    }
-
-    fun logTouchEvent(e: Event) {
-        var logData = "Action: "
-        when (e.code) {
-            EventsCodes.NextFingerUp -> logData += "NextFingerUp"
-            EventsCodes.OneFingerDown -> logData += "OneFingerDown"
-            EventsCodes.None -> logData += "None"
-            EventsCodes.Move -> logData += "Move"
-            EventsCodes.OneFingerUp -> logData += "OneFingerUp"
-            EventsCodes.Cancel -> logData += "Cancel"
-            EventsCodes.NextFingerDown -> logData += "NextFingerDown"
-        }
-        val points = e.points
-        logData += if ("; pointersTotal: $points" != null) points!!.size else 0
-        for (i in points!!.indices) {
-            logData += "; [value1: " + points[i].x
-            logData += "; value2: " + points[i].y + "]"
-        }
-        Log.d("PROCESSED_EVENT", logData)
-    }
-
 }

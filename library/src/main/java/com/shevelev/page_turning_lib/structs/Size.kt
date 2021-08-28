@@ -22,6 +22,9 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib
+package com.shevelev.page_turning_lib.structs
 
-class Margins(var left: Float, var top: Float, var right: Float, var bottom: Float)
+/**
+ * Size in pixels
+ */
+class Size(val width: Int, val height: Int)

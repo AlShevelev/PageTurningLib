@@ -22,9 +22,14 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.common.structs
+package com.shevelev.page_turning_lib.structs
 
-/**
- * Size in pixels
- */
-class Size(val width: Int, val height: Int)
+class Point(
+    /**
+     * Left coordinate as a portion of total size ([0-1])
+     */
+    var left: Int,
+    /**
+     * Top coordinate as a portion of total size ([0-1])
+     */
+    var top: Int)

@@ -22,9 +22,8 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib
+package com.shevelev.page_turning_lib.page_turning
 
-import android.app.Activity
 import android.content.Context
 import android.graphics.PointF
 import android.opengl.GLSurfaceView
@@ -37,7 +36,6 @@ import com.shevelev.page_turning_lib.helpers.PointsHelper.getDistance
 import com.shevelev.page_turning_lib.user_actions_managing.IUserActionsManaged
 import com.shevelev.page_turning_lib.user_actions_managing.UserActionManager
 import com.shevelev.page_turning_lib.user_actions_managing.ViewStateCodes
-import com.shevelev.page_turning_lib.common.helpers.ScreenHelper
 
 /**
  * OpenGL ES View.
@@ -108,7 +106,7 @@ class CurlView : GLSurfaceView, OnTouchListener, CurlRenderer.Observer, IUserAct
      */
     private fun init(ctx: Context) {
         currentContext = ctx
-        userActionManager = UserActionManager(this, ScreenHelper.getScreenSize(currentContext as Activity))
+        userActionManager = UserActionManager(this, listOf())
         renderer = CurlRenderer(this)
         setRenderer(renderer)
         renderMode = RENDERMODE_WHEN_DIRTY
@@ -355,7 +353,7 @@ class CurlView : GLSurfaceView, OnTouchListener, CurlRenderer.Observer, IUserAct
 
     override fun onTouch(view: View, me: MotionEvent): Boolean {
         if (animate || pageProvider == null) return false
-        userActionManager!!.Process(me, viewStateCodes)
+        userActionManager!!.process(me, viewStateCodes)
         return true
     }
 

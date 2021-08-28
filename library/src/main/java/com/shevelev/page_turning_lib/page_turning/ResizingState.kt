@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib
+package com.shevelev.page_turning_lib.page_turning
 
 class ResizingState(margins: Margins, scaleFactor: Float) {
     var margins // Margins of OGL-view - for smooth image

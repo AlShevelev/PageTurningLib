@@ -22,25 +22,6 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.common.helpers
+package com.shevelev.page_turning_lib.page_turning
 
-import android.app.Activity
-import android.graphics.Point
-import com.shevelev.page_turning_lib.common.structs.Size
-
-/**
- * All about screen and pixels
- */
-object ScreenHelper {
-    /**
-     * Get size of device screen in pixels
-     * @param context
-     * @return
-     */
-    fun getScreenSize(context: Activity): Size {
-        val display = context.windowManager.defaultDisplay
-        val size = Point() // Get size of screen
-        display.getSize(size)
-        return Size(size.x, size.y)
-    }
-}
+class Margins(var left: Float, var top: Float, var right: Float, var bottom: Float)

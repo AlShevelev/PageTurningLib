@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.shevelev.page_turning_lib.CurlView
+    <com.shevelev.page_turning_lib.page_turning.CurlView
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:id="@+id/curl"	/>

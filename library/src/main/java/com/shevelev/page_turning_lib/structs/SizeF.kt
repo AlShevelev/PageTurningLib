@@ -22,6 +22,6 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.common.structs
+package com.shevelev.page_turning_lib.structs
 
 class SizeF(var width: Float, var height: Float)

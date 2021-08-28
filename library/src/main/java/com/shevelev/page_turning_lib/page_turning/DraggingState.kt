@@ -22,11 +22,11 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib
+package com.shevelev.page_turning_lib.page_turning
 
 import android.graphics.RectF
 import android.util.Log
-import com.shevelev.page_turning_lib.common.structs.Pair
+import com.shevelev.page_turning_lib.structs.Pair
 
 class DraggingState(minMargin: Float, maxMargin: Float) {
     private var startDrag // Stating dragging factor by X and Y
