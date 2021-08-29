@@ -347,7 +347,7 @@ class CurlView : GLSurfaceView, OnTouchListener, CurlRenderer.Observer, IUserAct
         draggingState!!.completeDragging()
     }
 
-    override fun showMenu() {
+    override fun onHotAreaHit() {
         onShowMenu!!()
     }
 

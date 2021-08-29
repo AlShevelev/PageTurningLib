@@ -25,7 +25,6 @@
 package com.shevelev.page_turning_lib.user_actions_managing
 
 import android.graphics.PointF
-import android.util.Log
 import android.view.MotionEvent
 import com.shevelev.page_turning_lib.structs.Area
 
@@ -38,164 +37,147 @@ class UserActionManager(
     private val managedObject: IUserActionsManaged,
     private val hotAreas: List<Area>
 ) {
-    private var currentState = StateCodes.Init
+    private var currentState = States.Init
 
     private val eventsTransformer = EventsTransformer(hotAreas)
+
+    private var lastHotAreaId : Int? = null
 
     /**
      * Process next motion event
      * @param motionEvent
      * @param viewStateCode
      */
-    fun process(motionEvent: MotionEvent, viewStateCode: ViewStateCodes?) {
+    fun process(motionEvent: MotionEvent, viewStateCode: ViewStateCodes) {
         tryReset() // Try to reset machine's state if it's final
         val event = eventsTransformer.transform(motionEvent)
-        currentState = processTransition(event, viewStateCode!!) //transitionsMatrix[currentState.index][event.code.index]!!.invoke(event, viewStateCode!!)
+        currentState = processTransition(event, viewStateCode)
     }
 
-    private fun processTransition(event: Event, viewStateCode: ViewStateCodes): StateCodes =
+    private fun processTransition(event: Event, viewStateCode: ViewStateCodes): States =
         when(currentState) {
-            StateCodes.Init -> {
-                when(event.code) {
-                    EventCodes.OneFingerDown -> fromInitOnOneFingerDown(event.points, event.pressure, viewStateCode)
-                    
-                    EventCodes.OneFingerDownInHotArea -> doNothing(StateCodes.MenuMode)
-                    
+            States.Init -> {
+                when(event) {
+                    is OneFingerDown -> fromInitOnOneFingerDown(event.points, event.pressure, viewStateCode)
+                    is OneFingerDownInHotArea -> {
+                        lastHotAreaId = event.hotAreaId
+                        doNothing(States.HotAreaHitMode)
+                    }
                     else -> doNothing(currentState)
                 }
             }
 
-            StateCodes.Final -> doNothing(StateCodes.Final)
+            States.Final -> doNothing(States.Final)
 
-            StateCodes.Curving -> {
-                when(event.code) {
-                    EventCodes.NextFingerDown -> cancelCurving(event.points, event.pressure)
-
-                    EventCodes.Move -> processCurving(event.points, event.pressure)
-
-                    EventCodes.OneFingerUp, 
-                    EventCodes.Cancel -> completeCurving(event.points, event.pressure)
-
+            States.Curving -> {
+                when(event) {
+                    is NextFingerDown -> cancelCurving(event.points, event.pressure)
+                    is Move -> processCurving(event.points, event.pressure)
+                    is OneFingerUp -> completeCurving(event.points, event.pressure)
+                    is Cancel -> completeCurving(event.points, event.pressure)
                     else -> doNothing(currentState)
                 }
             }
 
-            StateCodes.Resizing -> {
-                when(event.code) {
-                    EventCodes.NextFingerDown,
-                    EventCodes.Move -> processResizing(event.points)
-
-                    EventCodes.NextFingerUp -> processResizingOneFingerUp(event.points, viewStateCode, event.fingerIndex)
-
+            States.Resizing -> {
+                when(event) {
+                    is NextFingerDown -> processResizing(event.points)
+                    is Move -> processResizing(event.points)
+                    is NextFingerUp -> processResizingOneFingerUp(event.points, viewStateCode, event.fingerIndex)
                     else -> doNothing(currentState)
                 }
             }
 
-            StateCodes.Dragging -> {
-                when(event.code) {
-                    EventCodes.NextFingerDown -> startResizing(event.points)
-
-                    EventCodes.Move -> processDragging(event.points)
-
-                    EventCodes.OneFingerUp,
-                    EventCodes.Cancel -> processFromDraggingToFinal(event.points)
-                    
+            States.Dragging -> {
+                when(event) {
+                    is NextFingerDown -> startResizing(event.points)
+                    is Move -> processDragging(event.points)
+                    is OneFingerUp -> processFromDraggingToFinal(event.points)
+                    is Cancel -> processFromDraggingToFinal(event.points)
                     else -> doNothing(currentState)
                 }
             }
 
-            StateCodes.MenuMode -> {
-                when(event.code) {
-                    EventCodes.OneFingerUp -> showMenu()
-
+            States.HotAreaHitMode -> {
+                when(event) {
+                    is OneFingerUp -> processHotAreaHit()
                     else -> doNothing(currentState)
                 }
             }
         }
 
-    private fun fromInitOnOneFingerDown(points: List<PointF>?, pressure: Float, viewStateCode: ViewStateCodes): StateCodes {
+    private fun fromInitOnOneFingerDown(points: List<PointF>, pressure: Float, viewStateCode: ViewStateCodes): States {
         if (viewStateCode === ViewStateCodes.NotResized) {
-            managedObject.startCurving(points!![0], pressure)
-            return StateCodes.Curving
+            managedObject.startCurving(points[0], pressure)
+            return States.Curving
         }
-        managedObject.startDragging(points!![0])
-        return StateCodes.Dragging
+        managedObject.startDragging(points[0])
+        return States.Dragging
     }
 
-    private fun processCurving(points: List<PointF>?, pressure: Float): StateCodes {
-        managedObject.curving(points!![0], pressure)
-        return StateCodes.Curving
+    private fun processCurving(points: List<PointF>, pressure: Float): States {
+        managedObject.curving(points[0], pressure)
+        return States.Curving
     }
 
-    private fun completeCurving(points: List<PointF>?, pressure: Float): StateCodes {
-        managedObject.completeCurving(points!![0], pressure)
-        return StateCodes.Final
+    private fun completeCurving(points: List<PointF>, pressure: Float): States {
+        managedObject.completeCurving(points[0], pressure)
+        return States.Final
     }
 
-    private fun cancelCurving(points: List<PointF>?, pressure: Float): StateCodes {
-        managedObject.cancelCurving(points!![0], pressure)
-        Log.d("RESIZING", "Start")
+    private fun cancelCurving(points: List<PointF>, pressure: Float): States {
+        managedObject.cancelCurving(points[0], pressure)
         managedObject.startResizing()
-        return StateCodes.Resizing
+        return States.Resizing
     }
 
-    private fun startResizing(points: List<PointF>?): StateCodes {
-        Log.d("RESIZING", "Start")
-        managedObject.completeDragging(points!![0])
+    private fun startResizing(points: List<PointF>): States {
+        managedObject.completeDragging(points[0])
         managedObject.startResizing()
-        return StateCodes.Resizing
+        return States.Resizing
     }
 
-    private fun processResizing(points: List<PointF>?): StateCodes {
-        Log.d("RESIZING", "In progress")
-        managedObject.resizing(points!!)
-        return StateCodes.Resizing
+    private fun processResizing(points: List<PointF>): States {
+        managedObject.resizing(points)
+        return States.Resizing
     }
 
-    private fun processResizingOneFingerUp(points: List<PointF>?, viewStateCode: ViewStateCodes, fingerIndex: Int): StateCodes {
-        Log.d("RESIZING", "One finger up")
-        return if (points!!.size > 2) // There is an old point in 'points' array too
-        {
-            Log.d("RESIZING", "points.length > 2")
+    private fun processResizingOneFingerUp(points: List<PointF>, viewStateCode: ViewStateCodes, fingerIndex: Int): States {
+        return if (points.size > 2) { // There is an old point in 'points' array too
             managedObject.resizing(points)
-            StateCodes.Resizing
+            States.Resizing
         } else {
-            Log.d("RESIZING", "points.length <= 2")
             managedObject.completeResizing()
-            if (viewStateCode === ViewStateCodes.NotResized) StateCodes.Curving else {
+            if (viewStateCode === ViewStateCodes.NotResized) States.Curving else {
                 managedObject.startDragging(points[if (fingerIndex == 0) 1 else 0])
-                StateCodes.Dragging
+                States.Dragging
             }
         }
     }
 
-    private fun processDragging(points: List<PointF>?): StateCodes {
-        managedObject.dragging(points!![0])
-        return StateCodes.Dragging
+    private fun processDragging(points: List<PointF>): States {
+        managedObject.dragging(points[0])
+        return States.Dragging
     }
 
-    private fun processFromDraggingToFinal(points: List<PointF>?): StateCodes {
-        managedObject.completeDragging(points!![0])
-        return StateCodes.Final
+    private fun processFromDraggingToFinal(points: List<PointF>): States {
+        managedObject.completeDragging(points[0])
+        return States.Final
     }
 
-    /**
-     * Empty transition
-     */
-    private fun doNothing(state: StateCodes): StateCodes {
+    private fun doNothing(state: States): States {
         return state
     }
 
-    /**
-     * Empty transition
-     */
-    private fun showMenu(): StateCodes {
-        managedObject.showMenu()
-        return StateCodes.Init
+    private fun processHotAreaHit(): States {
+        lastHotAreaId?.let { managedObject.onHotAreaHit(it) }
+        lastHotAreaId = null
+
+        return States.Init
     }
     private fun tryReset() {
-        if (currentState == StateCodes.Final) {
-            currentState = StateCodes.Init
+        if (currentState == States.Final) {
+            currentState = States.Init
             eventsTransformer.reset()
         }
     }

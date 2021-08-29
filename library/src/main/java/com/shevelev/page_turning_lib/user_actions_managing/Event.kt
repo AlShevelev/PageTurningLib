@@ -27,31 +27,71 @@ package com.shevelev.page_turning_lib.user_actions_managing
 import android.graphics.PointF
 
 /**
- * One event of state machine
+ * Base event class for all events in the state machine
  */
-class Event(
-    /**
-     * Code from EventsCodes
-     */
-    val code: EventCodes,
+sealed class Event
 
-    /**
-     * Fingers points - may be null
-     */
-    val points: List<PointF>?,
+/**
+ */
+object None: Event()
 
-    /**
-     * Size of finger's spot
-     */
-    val pressure: Float,
+/**
+ * @property points touch points
+ * @property pressure size of finger's spot
+ */
+class OneFingerDown(
+    val points: List<PointF>,
+    val pressure: Float
+): Event()
 
-    /**
-     * Index of finger in last action (for example - when we up one finger)
-     */
-    val fingerIndex: Int,
+/**
+ * @property points touch points
+ * @property pressure size of finger's spot
+ */
+class NextFingerDown(
+    val points: List<PointF>,
+    val pressure: Float
+): Event()
 
-    /**
-     * Id of a hot area (only for [EventCodes.OneFingerDownInHotArea] event)
-     */
-    val hotAreaId: Int?
-)
+/**
+ * @property points touch points
+ * @property pressure size of finger's spot
+ */
+class Move(
+    val points: List<PointF>,
+    val pressure: Float
+): Event()
+
+/**
+ * @property points touch points
+ * @property fingerIndex index of finger in the very last action (for example - when we up one finger)
+ */
+class NextFingerUp(
+    val points: List<PointF>,
+    val fingerIndex: Int
+): Event()
+
+/**
+ * @property points touch points
+ * @property pressure size of finger's spot
+ */
+class OneFingerUp(
+    val points: List<PointF>,
+    val pressure: Float
+): Event()
+
+/**
+ * @property points touch points
+ * @property pressure size of finger's spot
+ */
+class Cancel(
+    val points: List<PointF>,
+    val pressure: Float
+): Event()
+
+/**
+ * @property hotAreaId Id of a hot area
+ */
+class OneFingerDownInHotArea(
+    val hotAreaId: Int
+): Event()

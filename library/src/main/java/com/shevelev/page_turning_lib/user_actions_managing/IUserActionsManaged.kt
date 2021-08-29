@@ -40,5 +40,10 @@ interface IUserActionsManaged {
     fun startDragging(point: PointF)
     fun dragging(point: PointF)
     fun completeDragging(point: PointF)
-    fun showMenu()
+
+    /**
+     * A user lift his finger in some hot area
+     * @param id id of the area
+     */
+    fun onHotAreaHit(id: Int)
 }

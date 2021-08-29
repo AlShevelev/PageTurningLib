@@ -25,15 +25,13 @@
 package com.shevelev.page_turning_lib.user_actions_managing
 
 /**
- * Events of the state machine
+ * States of the state machine
  */
-enum class EventCodes {
-    None,
-    OneFingerDown,
-    NextFingerDown,
-    Move,
-    NextFingerUp,
-    OneFingerUp,
-    Cancel,
-    OneFingerDownInHotArea
+enum class States {
+    Init,
+    Curving,
+    Resizing,
+    Dragging,
+    Final,
+    HotAreaHitMode
 }

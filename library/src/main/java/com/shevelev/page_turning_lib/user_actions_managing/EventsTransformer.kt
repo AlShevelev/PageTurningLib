@@ -37,7 +37,7 @@ class EventsTransformer(private val hotAreas: List<Area>) {
     private var lastMoveEvent: Event? = null
 
     /**
-     * Reset internal state
+     * Resets internal state
      */
     fun reset() {
         lastMoveEvent = null
@@ -46,46 +46,54 @@ class EventsTransformer(private val hotAreas: List<Area>) {
     fun transform(deviceEvent: MotionEvent): Event {
         val action = deviceEvent.actionMasked
         val pointersTotal = deviceEvent.pointerCount
-        var points: MutableList<PointF>? = null
+        val points = mutableListOf<PointF>()
 
-        if (pointersTotal > 0) {
-            points = mutableListOf()
-            for (i in 0 until pointersTotal) {
-                points.add(PointF(deviceEvent.getX(i), deviceEvent.getY(i)))
-            }
+        for (i in 0 until pointersTotal) {
+            points.add(PointF(deviceEvent.getX(i), deviceEvent.getY(i)))
         }
 
         return when (action) {
-            MotionEvent.ACTION_DOWN -> getActionDownEvent(points, deviceEvent.pressure, deviceEvent)
-            MotionEvent.ACTION_POINTER_DOWN -> getNotMoveEvent(EventCodes.NextFingerDown, points, deviceEvent.pressure, deviceEvent)
-            MotionEvent.ACTION_MOVE -> getMoveEvent(points, deviceEvent.pressure, deviceEvent)
-            MotionEvent.ACTION_UP -> getNotMoveEvent(EventCodes.OneFingerUp, points, deviceEvent.pressure, deviceEvent)
-            MotionEvent.ACTION_POINTER_UP -> getNotMoveEvent(EventCodes.NextFingerUp, points, deviceEvent.pressure, deviceEvent)
-            MotionEvent.ACTION_OUTSIDE -> getNotMoveEvent(EventCodes.Cancel, points, deviceEvent.pressure, deviceEvent)
-            MotionEvent.ACTION_CANCEL -> getNotMoveEvent(EventCodes.Cancel, points, deviceEvent.pressure, deviceEvent)
-            else -> Event(EventCodes.None, points, deviceEvent.pressure, deviceEvent.actionIndex, null)
+            MotionEvent.ACTION_DOWN -> getActionDownEvent(points, deviceEvent.pressure)
+
+            MotionEvent.ACTION_POINTER_DOWN -> {
+                lastMoveEvent = null
+                NextFingerDown(points, deviceEvent.pressure)
+            }
+
+            MotionEvent.ACTION_MOVE -> getMoveEvent(points, deviceEvent.pressure)
+
+            MotionEvent.ACTION_UP -> {
+                lastMoveEvent = null
+                OneFingerUp(points, deviceEvent.pressure)
+            }
+
+            MotionEvent.ACTION_POINTER_UP -> {
+                lastMoveEvent = null
+                NextFingerUp(points, deviceEvent.actionIndex)
+            }
+
+            MotionEvent.ACTION_OUTSIDE, MotionEvent.ACTION_CANCEL -> {
+                lastMoveEvent = null
+                Cancel(points, deviceEvent.pressure)
+            }
+
+            else -> None
         }
     }
 
-    private fun getNotMoveEvent(code: EventCodes, points: List<PointF>?, pressure: Float, deviceEvent: MotionEvent): Event {
-        lastMoveEvent = null
-        return Event(code, points, pressure, deviceEvent.actionIndex, null)
-    }
-
-    private fun getActionDownEvent(points: List<PointF>?, pressure: Float, deviceEvent: MotionEvent): Event {
-        val lastPoint = Point(points!![0].x.toInt(), points[0].y.toInt())
+    private fun getActionDownEvent(points: List<PointF>, pressure: Float): Event {
+        val lastPoint = Point(points[0].x.toInt(), points[0].y.toInt())
 
         val hitAreaId = isHitHotArea(lastPoint)
 
         return if (hitAreaId != null) {
-            Event(EventCodes.OneFingerDownInHotArea, points, pressure, deviceEvent.actionIndex, hitAreaId)
+            OneFingerDownInHotArea(hitAreaId)
         } else {
-            Event(EventCodes.OneFingerDown, points, pressure, deviceEvent.actionIndex, null)
+            OneFingerDown(points, pressure)
         }
     }
 
-    private fun getMoveEvent(points: List<PointF>?, pressure: Float, deviceEvent: MotionEvent): Event =
-        Event(EventCodes.Move, points, pressure, deviceEvent.actionIndex, null)
+    private fun getMoveEvent(points: List<PointF>, pressure: Float): Event = Move(points, pressure)
 
     /**
      * Is the point inside one of the hot area?
