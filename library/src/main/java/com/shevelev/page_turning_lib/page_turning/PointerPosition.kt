@@ -29,7 +29,7 @@ import android.graphics.PointF
 /**
  * Simple holder for pointer position.
  */
-internal class PointerPosition {
-    var mPos = PointF()
-    var mPressure = 0f
-}
+class PointerPosition(
+    var pos: PointF,
+    var pressure: Float
+)

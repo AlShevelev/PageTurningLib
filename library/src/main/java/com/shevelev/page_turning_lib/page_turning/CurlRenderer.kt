@@ -29,8 +29,8 @@ import android.graphics.PointF
 import android.graphics.RectF
 import android.opengl.GLSurfaceView
 import android.opengl.GLU
+import android.util.SizeF
 import com.shevelev.page_turning_lib.structs.Pair
-import com.shevelev.page_turning_lib.structs.SizeF
 import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10

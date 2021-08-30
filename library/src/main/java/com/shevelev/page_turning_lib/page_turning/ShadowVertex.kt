@@ -28,10 +28,11 @@ package com.shevelev.page_turning_lib.page_turning
  * Holder for shadow vertex information.
  */
 internal class ShadowVertex {
-    var mPenumbraColor = 0.0
-    var mPenumbraX = 0.0
-    var mPenumbraY = 0.0
-    var mPosX = 0.0
-    var mPosY = 0.0
-    var mPosZ = 0.0
+    var penumbraColor = 0.0
+    var penumbraX = 0.0
+    var penumbraY = 0.0
+
+    var posX = 0.0
+    var posY = 0.0
+    var posZ = 0.0
 }

@@ -24,6 +24,8 @@
 
 package com.shevelev.page_turning_lib.structs
 
+import android.util.Size
+
 /**
  * Some area
  * @property id unique id of the area

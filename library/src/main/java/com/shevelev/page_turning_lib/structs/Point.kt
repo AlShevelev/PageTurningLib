@@ -28,8 +28,9 @@ class Point(
     /**
      * Left coordinate as a portion of total size ([0-1])
      */
-    var left: Int,
+    val left: Int,
     /**
      * Top coordinate as a portion of total size ([0-1])
      */
-    var top: Int)
+    val top: Int
+)

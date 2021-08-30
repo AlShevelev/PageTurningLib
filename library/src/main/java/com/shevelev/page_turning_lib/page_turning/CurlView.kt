@@ -65,7 +65,7 @@ class CurlView : GLSurfaceView, OnTouchListener, CurlRenderer.Observer, IUserAct
     private var pageLeft: CurlMesh? = null
     private var pageProvider: PageProvider? = null
     private var pageRight: CurlMesh? = null
-    private val pointerPos = PointerPosition()
+    private val pointerPos = PointerPosition(PointF(), 0f)
     private var renderer: CurlRenderer? = null
     private val renderLeftPage = true
     private var userActionManager: UserActionManager? = null
@@ -158,11 +158,11 @@ class CurlView : GLSurfaceView, OnTouchListener, CurlRenderer.Observer, IUserAct
             onPageChanged!!(currentPageIndex)
             requestRender()
         } else {
-            pointerPos.mPos.set(animationSource)
+            pointerPos.pos.set(animationSource)
             var t = 1f - (currentTime - animationStartTime).toFloat() / animationDurationTime
             t = 1f - t * t * t * (3 - 2 * t)
-            pointerPos.mPos.x += (animationTarget.x - animationSource.x) * t
-            pointerPos.mPos.y += (animationTarget.y - animationSource.y) * t
+            pointerPos.pos.x += (animationTarget.x - animationSource.x) * t
+            pointerPos.pos.y += (animationTarget.y - animationSource.y) * t
             updateCurlPos(pointerPos)
         }
     }
@@ -204,9 +204,9 @@ class CurlView : GLSurfaceView, OnTouchListener, CurlRenderer.Observer, IUserAct
     }
 
     private fun memorizePoint(x: Float, y: Float, pressure: Float) {
-        pointerPos.mPos[x] = y
-        renderer!!.translate(pointerPos.mPos)
-        if (enableTouchPressure) pointerPos.mPressure = pressure else pointerPos.mPressure = 0.8f
+        pointerPos.pos[x] = y
+        renderer!!.translate(pointerPos.pos)
+        if (enableTouchPressure) pointerPos.pressure = pressure else pointerPos.pressure = 0.8f
     }
 
     override fun startCurving(point: PointF, pressure: Float) {
@@ -215,7 +215,7 @@ class CurlView : GLSurfaceView, OnTouchListener, CurlRenderer.Observer, IUserAct
         // Once we receive pointer down event its position is mapped to
 // right or left edge of page and that'll be the position from where
 // user is holding the paper to make curl happen.
-        dragStartPos.set(pointerPos.mPos)
+        dragStartPos.set(pointerPos.pos)
         // First we make sure it's not over or below page. Pages are
 // supposed to be same height so it really doesn't matter do we use
 // left or right one.
@@ -257,11 +257,11 @@ class CurlView : GLSurfaceView, OnTouchListener, CurlRenderer.Observer, IUserAct
 // result (which is easier done by altering curl position and/or
 // direction directly), this is done in a hope it made code a
 // bit more readable and easier to maintain.
-            animationSource.set(pointerPos.mPos)
+            animationSource.set(pointerPos.pos)
             animationStartTime = System.currentTimeMillis()
             // Given the explanation, here we decide whether to simulate
 // drag to left or right end.
-            if (pointerPos.mPos.x > (rightRect!!.left + rightRect.right) / 2) { // On right side target is always right page's right border.
+            if (pointerPos.pos.x > (rightRect!!.left + rightRect.right) / 2) { // On right side target is always right page's right border.
                 animationTarget.set(dragStartPos)
                 animationTarget.x = renderer!!.getPageRect(CurlState.Right)!!.right
                 animationTargetEvent = CurlTarget.ToRight
@@ -347,7 +347,11 @@ class CurlView : GLSurfaceView, OnTouchListener, CurlRenderer.Observer, IUserAct
         draggingState!!.completeDragging()
     }
 
-    override fun onHotAreaHit() {
+    /**
+     * A user lift his finger in some hot area
+     * @param id id of the area
+     */
+    override fun onHotAreaHit(id: Int) {
         onShowMenu!!()
     }
 
@@ -554,13 +558,13 @@ class CurlView : GLSurfaceView, OnTouchListener, CurlRenderer.Observer, IUserAct
 // coefficient to range [0f, 1f] but something like [.2f, 1f] instead.
 // Leaving it as is until get my hands on a real device. On emulator
 // this doesn't work anyway.
-        radius *= Math.max(1f - pointerPos.mPressure, 0f).toDouble()
+        radius *= Math.max(1f - pointerPos.pressure, 0f).toDouble()
         // NOTE: Here we set pointerPos to curlPos. It might be a bit confusing
 // later to see e.g "curlPos.value1 - dragStartPos.value1" used. But it's
 // actually pointerPos we are doing calculations against. Why? Simply to
 // optimize code a bit with the cost of making it unreadable. Otherwise
 // we had to this in both of the next if-else branches.
-        curlPos.set(pointerPos.mPos)
+        curlPos.set(pointerPos.pos)
         // If curl happens on right page, or on left page on two page mode,
 // we'll calculate curl position from pointerPos.
         if (curlState === CurlState.Right) {

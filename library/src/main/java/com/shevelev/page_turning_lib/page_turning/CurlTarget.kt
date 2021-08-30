@@ -25,5 +25,7 @@
 package com.shevelev.page_turning_lib.page_turning
 
 enum class CurlTarget {
-    None, ToLeft, ToRight
+    None,
+    ToLeft,
+    ToRight
 }

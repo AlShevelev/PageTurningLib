@@ -25,10 +25,13 @@
 package com.shevelev.page_turning_lib.page_turning
 
 import android.graphics.RectF
-import com.shevelev.page_turning_lib.structs.SizeF
+import android.util.SizeF
 
 /**
  * Information about renderer view
  * [viewAreaSize] Size of view area [px]
  */
-class RendererViewInfo(val viewRect: RectF, val viewAreaSize: SizeF)
+class RendererViewInfo(
+    val viewRect: RectF,
+    val viewAreaSize: SizeF
+)

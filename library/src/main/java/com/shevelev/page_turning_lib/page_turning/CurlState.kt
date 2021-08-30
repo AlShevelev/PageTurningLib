@@ -25,5 +25,7 @@
 package com.shevelev.page_turning_lib.page_turning
 
 enum class CurlState {
-    Left, Right, None
+    Left,
+    Right,
+    None
 }

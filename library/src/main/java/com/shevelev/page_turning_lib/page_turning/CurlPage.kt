@@ -28,16 +28,22 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.RectF
+import androidx.annotation.ColorInt
+import java.lang.UnsupportedOperationException
 
 /**
- * Storage class for page textures, blend colors and possibly some other values
- * in the future.
+ * Storage class for page textures and blend colors
  */
 class CurlPage {
-    private var colorBack = 0
-    private var colorFront = 0
-    private var textureBack: Bitmap? = null
-    private var textureFront: Bitmap? = null
+    @ColorInt
+    private var colorFront = Color.WHITE
+
+    @ColorInt
+    private var colorBack = Color.WHITE
+
+    private var textureFront: Bitmap = createSolidTexture(colorBack)
+    private var textureBack: Bitmap = createSolidTexture(colorFront)
+
     /**
      * Returns true if textures have changed.
      */
@@ -45,9 +51,17 @@ class CurlPage {
         private set
 
     /**
+     * Returns true if back siding texture exists and it differs from front
+     * facing one.
+     */
+    val hasBackTexture: Boolean
+        get() = textureFront != textureBack
+
+    /**
      * Getter for color.
      */
-    fun getColor(side: PageSide?): Int {
+    @ColorInt
+    fun getColor(side: PageSide): Int {
         return when (side) {
             PageSide.Front -> colorFront
             else -> colorBack
@@ -55,46 +69,17 @@ class CurlPage {
     }
 
     /**
-     * Calculates the next highest power of 2(two) for a given integer.
+     * Setter blend color.
      */
-    private fun getNextHighestPO2(n: Int): Int {
-        var n = n
-        n -= 1
-        n = n or (n shr 1)
-        n = n or (n shr 2)
-        n = n or (n shr 4)
-        n = n or (n shr 8)
-        n = n or (n shr 16)
-        n = n or (n shr 32)
-        return n + 1
-    }
-
-    /**
-     * Create texture from given bitmap
-     * -----------------------------------------------
-     * Generates nearest power of two sized Bitmap for give Bitmap. Returns this
-     * new Bitmap using default return statement + original texture coordinates
-     * are stored into RectF.
-     */
-    private fun getTexture(bitmap: Bitmap?, textureRect: RectF): Bitmap { // Bitmap original size.
-        val w = bitmap!!.width
-        val h = bitmap.height
-        // Bitmap size expanded to next power of two. This is done due to
-// the requirement on many devices, texture width and height should
-// be power of two.
-        val newW = getNextHighestPO2(w)
-        val newH = getNextHighestPO2(h)
-        // TODO: Is there another way to setDiskItems a bigger Bitmap and copy
-// original Bitmap to it more efficiently? Immutable bitmap anyone?
-//		Bitmap bitmapTex = Bitmap.createBitmap(newW, newH, bitmap.getConfig());
-        val bitmapTex = Bitmap.createBitmap(newW, newH, Bitmap.Config.RGB_565)
-        val c = Canvas(bitmapTex)
-        c.drawBitmap(bitmap, 0f, 0f, null)
-        // Calculate final texture coordinates.
-        val texX = w.toFloat() / newW
-        val texY = h.toFloat() / newH
-        textureRect[0f, 0f, texX] = texY
-        return bitmapTex
+    fun setColor(color: Int, side: PageSide) {
+        when (side) {
+            PageSide.Front -> colorFront = color
+            PageSide.Back -> colorBack = color
+            else -> {
+                colorBack = color
+                colorFront = colorBack
+            }
+        }
     }
 
     /**
@@ -103,41 +88,35 @@ class CurlPage {
      * filled with actual texture coordinates in this new upscaled texture
      * Bitmap.
      */
-    fun getTexture(textureRect: RectF, side: PageSide?): Bitmap {
+    fun getTexture(textureRect: RectF, side: PageSide): Bitmap {
         return when (side) {
             PageSide.Front -> getTexture(textureFront, textureRect)
-            else -> getTexture(textureBack, textureRect)
+            PageSide.Back -> getTexture(textureBack, textureRect)
+            else -> throw UnsupportedOperationException("This value is not supported: $side")
         }
     }
 
     /**
-     * Returns true if back siding texture exists and it differs from front
-     * facing one.
+     * Setter for textures.
      */
-    fun hasBackTexture(): Boolean {
-        return textureFront != textureBack
-    }
+    fun setTexture(sourceTexture: Bitmap?, side: PageSide) {
+        val texture = sourceTexture ?: createSolidTexture(if (side == PageSide.Back) colorBack else colorFront)
 
-    /**
-     * Recycles and frees underlying Bitmaps.
-     */
-    fun recycle() {
-        if (textureFront != null) textureFront!!.recycle() // Free memory
-        textureFront = createSolidTexture(colorFront) // Create bitmap as small as possible filled with solid color
-        if (textureBack != null) textureBack!!.recycle()
-        textureBack = createSolidTexture(colorBack)
-        texturesChanged = false
-    }
-
-    /**
-     * Create small texture filled by solid color
-     * @param color
-     * @return
-     */
-    private fun createSolidTexture(color: Int): Bitmap {
-        val bmp = Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565)
-        bmp.eraseColor(color)
-        return bmp
+        when (side) {
+            PageSide.Front -> {
+                textureFront.recycle()
+                textureFront = texture
+            }
+            PageSide.Back -> {
+                textureBack.recycle()
+                textureBack = texture
+            }
+            PageSide.Both -> {
+                setTexture(texture, PageSide.Front)
+                setTexture(texture, PageSide.Back)
+            }
+        }
+        texturesChanged = true
     }
 
     /**
@@ -150,46 +129,66 @@ class CurlPage {
     }
 
     /**
-     * Setter blend color.
+     * Recycles and frees underlying Bitmaps.
      */
-    fun setColor(color: Int, side: PageSide?) {
-        when (side) {
-            PageSide.Front -> colorFront = color
-            PageSide.Back -> colorBack = color
-            else -> {
-                colorBack = color
-                colorFront = colorBack
-            }
-        }
+    fun recycle() {
+        textureFront.recycle()
+        textureBack.recycle()
+
+        // Creates bitmap as small as possible filled with solid color
+        textureFront = createSolidTexture(colorFront)
+        textureBack = createSolidTexture(colorBack)
+
+        texturesChanged = false
     }
 
     /**
-     * Setter for textures.
+     * Calculates the next highest power of 2(two) for a given integer.
      */
-    fun setTexture(texture: Bitmap?, side: PageSide) {
-        var texture = texture
-        if (texture == null) texture = createSolidTexture(if (side == PageSide.Back) colorBack else colorFront)
-        when (side) {
-            PageSide.Front -> {
-                if (textureFront != null) textureFront!!.recycle()
-                textureFront = texture
-            }
-            PageSide.Back -> {
-                if (textureBack != null) textureBack!!.recycle()
-                textureBack = texture
-            }
-            PageSide.Both -> {
-                setTexture(texture, PageSide.Front)
-                setTexture(texture, PageSide.Back)
-            }
-        }
-        texturesChanged = true
+    private fun getNextHighestPO2(pow: Int): Int {
+        var n = pow
+        n -= 1
+        n = n or (n shr 1)
+        n = n or (n shr 2)
+        n = n or (n shr 4)
+        n = n or (n shr 8)
+        n = n or (n shr 16)
+        n = n or (n shr 32)
+        return n + 1
     }
 
     /**
-     * Default constructor.
+     * Create texture from given bitmap
+     * Generates nearest power of two sized Bitmap for give Bitmap. Returns this
+     * new Bitmap using default return statement + original texture coordinates
+     * are stored into RectF.
      */
-    init {
-        reset()
+    private fun getTexture(bitmap: Bitmap, textureRect: RectF): Bitmap {
+        val w = bitmap.width
+        val h = bitmap.height
+
+        // Bitmap size expanded to next power of two.
+        val newW = getNextHighestPO2(w)
+        val newH = getNextHighestPO2(h)
+
+        val bitmapTex = Bitmap.createBitmap(newW, newH, Bitmap.Config.RGB_565)
+        val c = Canvas(bitmapTex)
+        c.drawBitmap(bitmap, 0f, 0f, null)
+
+        // Calculate final texture coordinates.
+        val texX = w.toFloat() / newW
+        val texY = h.toFloat() / newH
+        textureRect[0f, 0f, texX] = texY
+
+        return bitmapTex
+    }
+
+    /**
+     * Create small texture filled by solid color
+     */
+    private fun createSolidTexture(@ColorInt color: Int): Bitmap {
+        val bmp = Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565)
+        bmp.eraseColor(color)
+        return bmp
     }
 }

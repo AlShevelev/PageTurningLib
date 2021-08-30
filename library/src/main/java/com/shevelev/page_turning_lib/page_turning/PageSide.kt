@@ -25,5 +25,7 @@
 package com.shevelev.page_turning_lib.page_turning
 
 enum class PageSide {
-    Back, Front, Both
+    Back,
+    Front,
+    Both
 }

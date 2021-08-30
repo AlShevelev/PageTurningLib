@@ -40,21 +40,23 @@ class CurlMesh(maxCurlSplits: Int) {
     // Let's avoid using 'new' as much as possible. Meaning we introduce arrays
 // once here and reuse them on runtime. Doesn't really have very much effect
 // but avoids some garbage collections from happening.
-    private var arrDropShadowVertices: Array<ShadowVertex>? = null
-    private val arrIntersections: Array<Vertex>
-    private val arrOutputVertices: Array<Vertex>
-    private val arrRotatedVertices: Array<Vertex>
-    private val arrScanLines: Array<Double>
-    private var arrSelfShadowVertices: Array<ShadowVertex>? = null
-    private var arrTempShadowVertices: Array<ShadowVertex>? = null
-    private val arrTempVertices: Array<Vertex>
+    private var dropShadowVertices: Array<ShadowVertex>? = null
+    private val intersections: Array<Vertex>
+    private val outputVertices: Array<Vertex>
+    private val rotatedVertices: Array<Vertex>
+    private val scanLines: Array<Double>
+    private var selfShadowVertices: Array<ShadowVertex>? = null
+    private var tempShadowVertices: Array<ShadowVertex>? = null
+    private val tempVertices: Array<Vertex>
+
     // Buffers for feeding rasterizer.
-    private val bufColors: FloatBuffer
-    private var bufCurlPositionLines: FloatBuffer? = null
-    private var bufShadowColors: FloatBuffer? = null
-    private var bufShadowVertices: FloatBuffer? = null
-    private var bufTexCoords: FloatBuffer? = null
-    private val bufVertices: FloatBuffer
+    private val colorsBuffer: FloatBuffer
+    private var curlPositionLinesBuffer: FloatBuffer? = null
+    private var shadowColorsBuffer: FloatBuffer? = null
+    private var shadowVerticesBuffer: FloatBuffer? = null
+    private var texCoordsBuffer: FloatBuffer? = null
+    private val verticesBuffer: FloatBuffer
+
     private var curlPositionLinesCount = 0
     private var dropShadowCount = 0
     // Boolean for 'flipping' texture sideways.
@@ -74,24 +76,26 @@ class CurlMesh(maxCurlSplits: Int) {
      */
     @get:Synchronized
     val texturePage = CurlPage()
+
     private val textureRectBack = RectF()
     private val textureRectFront = RectF()
     private var verticesCountBack = 0
     private var verticesCountFront = 0
+
     /**
      * Adds vertex to buffers.
      */
     private fun addVertex(vertex: Vertex) {
-        bufVertices.put(vertex.mPosX.toFloat())
-        bufVertices.put(vertex.mPosY.toFloat())
-        bufVertices.put(vertex.mPosZ.toFloat())
-        bufColors.put(vertex.mColorFactor * Color.red(vertex.mColor) / 255f)
-        bufColors.put(vertex.mColorFactor * Color.green(vertex.mColor) / 255f)
-        bufColors.put(vertex.mColorFactor * Color.blue(vertex.mColor) / 255f)
-        bufColors.put(Color.alpha(vertex.mColor) / 255f)
+        verticesBuffer.put(vertex.posX.toFloat())
+        verticesBuffer.put(vertex.posY.toFloat())
+        verticesBuffer.put(vertex.posZ.toFloat())
+        colorsBuffer.put(vertex.colorFactor * Color.red(vertex.color) / 255f)
+        colorsBuffer.put(vertex.colorFactor * Color.green(vertex.color) / 255f)
+        colorsBuffer.put(vertex.colorFactor * Color.blue(vertex.color) / 255f)
+        colorsBuffer.put(Color.alpha(vertex.color) / 255f)
         if (DRAW_TEXTURE) {
-            bufTexCoords!!.put(vertex.mTexX.toFloat())
-            bufTexCoords!!.put(vertex.mTexY.toFloat())
+            texCoordsBuffer!!.put(vertex.texX.toFloat())
+            texCoordsBuffer!!.put(vertex.texY.toFloat())
         }
     }
 
@@ -106,25 +110,25 @@ class CurlMesh(maxCurlSplits: Int) {
     fun curl(curlPos: PointF, curlDir: PointF, radius: Double) {
         if (DRAW_CURL_POSITION) // First add some 'helper' lines used for development.
         {
-            bufCurlPositionLines!!.position(0)
-            bufCurlPositionLines!!.put(curlPos.x)
-            bufCurlPositionLines!!.put(curlPos.y - 1.0f)
-            bufCurlPositionLines!!.put(curlPos.x)
-            bufCurlPositionLines!!.put(curlPos.y + 1.0f)
-            bufCurlPositionLines!!.put(curlPos.x - 1.0f)
-            bufCurlPositionLines!!.put(curlPos.y)
-            bufCurlPositionLines!!.put(curlPos.x + 1.0f)
-            bufCurlPositionLines!!.put(curlPos.y)
-            bufCurlPositionLines!!.put(curlPos.x)
-            bufCurlPositionLines!!.put(curlPos.y)
-            bufCurlPositionLines!!.put(curlPos.x + curlDir.x * 2)
-            bufCurlPositionLines!!.put(curlPos.y + curlDir.y * 2)
-            bufCurlPositionLines!!.position(0)
+            curlPositionLinesBuffer!!.position(0)
+            curlPositionLinesBuffer!!.put(curlPos.x)
+            curlPositionLinesBuffer!!.put(curlPos.y - 1.0f)
+            curlPositionLinesBuffer!!.put(curlPos.x)
+            curlPositionLinesBuffer!!.put(curlPos.y + 1.0f)
+            curlPositionLinesBuffer!!.put(curlPos.x - 1.0f)
+            curlPositionLinesBuffer!!.put(curlPos.y)
+            curlPositionLinesBuffer!!.put(curlPos.x + 1.0f)
+            curlPositionLinesBuffer!!.put(curlPos.y)
+            curlPositionLinesBuffer!!.put(curlPos.x)
+            curlPositionLinesBuffer!!.put(curlPos.y)
+            curlPositionLinesBuffer!!.put(curlPos.x + curlDir.x * 2)
+            curlPositionLinesBuffer!!.put(curlPos.y + curlDir.y * 2)
+            curlPositionLinesBuffer!!.position(0)
         }
         // Actual 'curl' implementation starts here.
-        bufVertices.position(0)
-        bufColors.position(0)
-        if (DRAW_TEXTURE) bufTexCoords!!.position(0)
+        verticesBuffer.position(0)
+        colorsBuffer.position(0)
+        if (DRAW_TEXTURE) texCoordsBuffer!!.position(0)
         // Calculate curl angle from direction.
         var curlAngle = Math.acos(curlDir.x.toDouble())
         curlAngle = if (curlDir.y > 0) -curlAngle else curlAngle
@@ -133,21 +137,21 @@ class CurlMesh(maxCurlSplits: Int) {
 // ordered in ascending order based on value1 -coordinate at the same time.
 // And using value2 -coordinate in very rare case in which two vertices have
 // same value1 -coordinate.
-        arrTempVertices.addAll(arrRotatedVertices)
-        arrRotatedVertices.clear()
+        tempVertices.addAll(rotatedVertices)
+        rotatedVertices.clear()
         for (i in 0..3) {
-            val v = arrTempVertices.remove(0)!!
+            val v = tempVertices.remove(0)!!
             v.set(rectangle[i]!!)
             v.translate(-curlPos.x.toDouble(), -curlPos.y.toDouble())
             v.rotateZ(-curlAngle)
             var j = 0
-            while (j < arrRotatedVertices.size()) {
-                val v2 = arrRotatedVertices[j]!!
-                if (v.mPosX > v2.mPosX) break
-                if (v.mPosX == v2.mPosX && v.mPosY > v2.mPosY) break
+            while (j < rotatedVertices.size()) {
+                val v2 = rotatedVertices[j]!!
+                if (v.posX > v2.posX) break
+                if (v.posX == v2.posX && v.posY > v2.posY) break
                 ++j
             }
-            arrRotatedVertices.add(j, v)
+            rotatedVertices.add(j, v)
         }
         // Rotated rectangle lines/vertex indices. We need to find bounding
 // lines for rotated rectangle. After sorting vertices according to
@@ -162,15 +166,15 @@ class CurlMesh(maxCurlSplits: Int) {
         run {
             // TODO: There really has to be more 'easier' way of doing this -
 // not including extensive use of sqrt.
-            val v0 = arrRotatedVertices[0]!!
-            val v2 = arrRotatedVertices[2]!!
-            val v3 = arrRotatedVertices[3]!!
-            val dist2 = Math.sqrt((v0.mPosX - v2.mPosX)
-                * (v0.mPosX - v2.mPosX) + (v0.mPosY - v2.mPosY)
-                * (v0.mPosY - v2.mPosY))
-            val dist3 = Math.sqrt((v0.mPosX - v3.mPosX)
-                * (v0.mPosX - v3.mPosX) + (v0.mPosY - v3.mPosY)
-                * (v0.mPosY - v3.mPosY))
+            val v0 = rotatedVertices[0]!!
+            val v2 = rotatedVertices[2]!!
+            val v3 = rotatedVertices[3]!!
+            val dist2 = Math.sqrt((v0.posX - v2.posX)
+                * (v0.posX - v2.posX) + (v0.posY - v2.posY)
+                * (v0.posY - v2.posY))
+            val dist3 = Math.sqrt((v0.posX - v3.posX)
+                * (v0.posX - v3.posX) + (v0.posY - v3.posY)
+                * (v0.posY - v3.posY))
             if (dist2 > dist3) {
                 lines[1][1] = 3
                 lines[2][1] = 2
@@ -179,64 +183,64 @@ class CurlMesh(maxCurlSplits: Int) {
         verticesCountBack = 0
         verticesCountFront = verticesCountBack
         if (DRAW_SHADOW) {
-            arrTempShadowVertices!!.addAll(arrDropShadowVertices!!)
-            arrTempShadowVertices!!.addAll(arrSelfShadowVertices!!)
-            arrDropShadowVertices!!.clear()
-            arrSelfShadowVertices!!.clear()
+            tempShadowVertices!!.addAll(dropShadowVertices!!)
+            tempShadowVertices!!.addAll(selfShadowVertices!!)
+            dropShadowVertices!!.clear()
+            selfShadowVertices!!.clear()
         }
         // Length of 'curl' curve.
         val curlLength = Math.PI * radius
         // Calculate scan lines.
 // TODO: Revisit this code one day. There is room for optimization here.
-        arrScanLines.clear()
-        if (maxCurlSplits > 0) arrScanLines.add(0.toDouble())
-        for (i in 1 until maxCurlSplits) arrScanLines.add(-curlLength * i / (maxCurlSplits - 1))
+        scanLines.clear()
+        if (maxCurlSplits > 0) scanLines.add(0.toDouble())
+        for (i in 1 until maxCurlSplits) scanLines.add(-curlLength * i / (maxCurlSplits - 1))
         // As mRotatedVertices is ordered regarding value1 -coordinate, adding
 // this scan line produces scan area picking up vertices which are
 // rotated completely. One could say 'until infinity'.
-        arrScanLines.add(arrRotatedVertices[3]!!.mPosX - 1)
+        scanLines.add(rotatedVertices[3]!!.posX - 1)
         // Start from right most vertex. Pretty much the same as first scan area
 // is starting from 'infinity'.
-        var scanXmax = arrRotatedVertices[0]!!.mPosX + 1
-        for (i in 0 until arrScanLines.size()) { // Once we have scanXmin and scanXmax we have a scan area to start
+        var scanXmax = rotatedVertices[0]!!.posX + 1
+        for (i in 0 until scanLines.size()) { // Once we have scanXmin and scanXmax we have a scan area to start
 // working with.
-            val scanXmin = arrScanLines[i]!!
+            val scanXmin = scanLines[i]!!
             // First iterate 'original' rectangle vertices within scan area.
-            for (j in 0 until arrRotatedVertices.size()) {
-                val v = arrRotatedVertices[j]!!
+            for (j in 0 until rotatedVertices.size()) {
+                val v = rotatedVertices[j]!!
                 // Test if vertex lies within this scan area.
 // TODO: Frankly speaking, can't remember why equality check was
 // added to both ends. Guessing it was somehow related to case
 // where radius=0f, which, given current implementation, could
 // be handled much more effectively anyway.
-                if (v.mPosX >= scanXmin && v.mPosX <= scanXmax) { // Pop out a vertex from temp vertices.
-                    val n = arrTempVertices.remove(0)!!
+                if (v.posX >= scanXmin && v.posX <= scanXmax) { // Pop out a vertex from temp vertices.
+                    val n = tempVertices.remove(0)!!
                     n.set(v)
                     // This is done solely for triangulation reasons. Given a
 // rotated rectangle it has max 2 vertices having
 // intersection.
                     val intersections = getIntersections(
-                        arrRotatedVertices, lines, n.mPosX)
+                        rotatedVertices, lines, n.posX)
                     // In a sense one could say we're adding vertices always in
 // two, positioned at the ends of intersecting line. And for
 // triangulation to work properly they are added based on value2
 // -coordinate. And this if-else is doing it for us.
-                    if (intersections.size() == 1 && intersections[0]!!.mPosY > v.mPosY) { // In case intersecting vertex is higher add it first.
-                        arrOutputVertices.addAll(intersections)
-                        arrOutputVertices.add(n)
+                    if (intersections.size() == 1 && intersections[0]!!.posY > v.posY) { // In case intersecting vertex is higher add it first.
+                        outputVertices.addAll(intersections)
+                        outputVertices.add(n)
                     } else if (intersections.size() <= 1) { // Otherwise add original vertex first.
-                        arrOutputVertices.add(n)
-                        arrOutputVertices.addAll(intersections)
+                        outputVertices.add(n)
+                        outputVertices.addAll(intersections)
                     } else { // There should never be more than 1 intersecting
 // vertex. But if it happens as a fallback simply skip
 // everything.
-                        arrTempVertices.add(n)
-                        arrTempVertices.addAll(intersections)
+                        tempVertices.add(n)
+                        tempVertices.addAll(intersections)
                     }
                 }
             }
             // Search for scan line intersections.
-            val intersections = getIntersections(arrRotatedVertices,
+            val intersections = getIntersections(rotatedVertices,
                 lines, scanXmin)
             // We expect to get 0 or 2 vertices. In rare cases there's only one
 // but in general given a scan line intersecting rectangle there
@@ -245,11 +249,11 @@ class CurlMesh(maxCurlSplits: Int) {
 // -coordinate, higher first, lower last.
                 val v1 = intersections[0]!!
                 val v2 = intersections[1]!!
-                if (v1.mPosY < v2.mPosY) {
-                    arrOutputVertices.add(v2)
-                    arrOutputVertices.add(v1)
+                if (v1.posY < v2.posY) {
+                    outputVertices.add(v2)
+                    outputVertices.add(v1)
                 } else {
-                    arrOutputVertices.addAll(intersections)
+                    outputVertices.addAll(intersections)
                 }
             } else if (intersections.size() != 0) { // This happens in a case in which there is a original vertex
 // exactly at scan line or something went very much wrong if
@@ -258,35 +262,35 @@ class CurlMesh(maxCurlSplits: Int) {
 // was handled already earlier once iterating through
 // mRotatedVertices, in latter case it's better to avoid doing
 // anything with them.
-                arrTempVertices.addAll(intersections)
+                tempVertices.addAll(intersections)
             }
             // Add vertices found during this iteration to vertex etc buffers.
-            while (arrOutputVertices.size() > 0) {
-                val v = arrOutputVertices.remove(0)!!
-                arrTempVertices.add(v)
+            while (outputVertices.size() > 0) {
+                val v = outputVertices.remove(0)!!
+                tempVertices.add(v)
                 // Local texture front-facing flag.
                 var textureFront: Boolean
                 // Untouched vertices.
                 if (i == 0) {
                     textureFront = true
                     verticesCountFront++
-                } else if (i == arrScanLines.size() - 1 || curlLength == 0.0) {
-                    v.mPosX = -(curlLength + v.mPosX)
-                    v.mPosZ = 2 * radius
-                    v.mPenumbraX = -v.mPenumbraX
+                } else if (i == scanLines.size() - 1 || curlLength == 0.0) {
+                    v.posX = -(curlLength + v.posX)
+                    v.posZ = 2 * radius
+                    v.penumbraX = -v.penumbraX
                     textureFront = false
                     verticesCountBack++
                 } else { // Even though it's not obvious from the if-else clause,
 // here v.mPosX is between [-curlLength, 0]. And we can do
 // calculations around a half cylinder.
-                    val rotY = Math.PI * (v.mPosX / curlLength)
-                    v.mPosX = radius * Math.sin(rotY)
-                    v.mPosZ = radius - radius * Math.cos(rotY)
-                    v.mPenumbraX *= Math.cos(rotY)
+                    val rotY = Math.PI * (v.posX / curlLength)
+                    v.posX = radius * Math.sin(rotY)
+                    v.posZ = radius - radius * Math.cos(rotY)
+                    v.penumbraX *= Math.cos(rotY)
                     // Map color multiplier to [.1f, 1f] range.
-                    v.mColorFactor = (.1f + .9f * Math.sqrt(Math
+                    v.colorFactor = (.1f + .9f * Math.sqrt(Math
                         .sin(rotY) + 1)).toFloat()
-                    if (v.mPosZ >= radius) {
+                    if (v.posZ >= radius) {
                         textureFront = false
                         verticesCountBack++
                     } else {
@@ -300,87 +304,87 @@ class CurlMesh(maxCurlSplits: Int) {
 // texture coordinates are within [0, 1] range so we'll adjust
 // them to final texture coordinates too.
                 if (textureFront != flipTexture) {
-                    v.mTexX *= textureRectFront.right.toDouble()
-                    v.mTexY *= textureRectFront.bottom.toDouble()
-                    v.mColor = texturePage.getColor(PageSide.Front)
+                    v.texX *= textureRectFront.right.toDouble()
+                    v.texY *= textureRectFront.bottom.toDouble()
+                    v.color = texturePage.getColor(PageSide.Front)
                 } else {
-                    v.mTexX *= textureRectBack.right.toDouble()
-                    v.mTexY *= textureRectBack.bottom.toDouble()
-                    v.mColor = texturePage.getColor(PageSide.Back)
+                    v.texX *= textureRectBack.right.toDouble()
+                    v.texY *= textureRectBack.bottom.toDouble()
+                    v.color = texturePage.getColor(PageSide.Back)
                 }
                 // Move vertex back to 'world' coordinates.
                 v.rotateZ(curlAngle)
                 v.translate(curlPos.x.toDouble(), curlPos.y.toDouble())
                 addVertex(v)
                 // Drop shadow is cast 'behind' the curl.
-                if (DRAW_SHADOW && v.mPosZ > 0 && v.mPosZ <= radius) {
-                    val sv = arrTempShadowVertices!!.remove(0)!!
-                    sv.mPosX = v.mPosX
-                    sv.mPosY = v.mPosY
-                    sv.mPosZ = v.mPosZ
-                    sv.mPenumbraX = v.mPosZ / 2 * -curlDir.x
-                    sv.mPenumbraY = v.mPosZ / 2 * -curlDir.y
-                    sv.mPenumbraColor = v.mPosZ / radius
-                    val idx = (arrDropShadowVertices!!.size() + 1) / 2
-                    arrDropShadowVertices!!.add(idx, sv)
+                if (DRAW_SHADOW && v.posZ > 0 && v.posZ <= radius) {
+                    val sv = tempShadowVertices!!.remove(0)!!
+                    sv.posX = v.posX
+                    sv.posY = v.posY
+                    sv.posZ = v.posZ
+                    sv.penumbraX = v.posZ / 2 * -curlDir.x
+                    sv.penumbraY = v.posZ / 2 * -curlDir.y
+                    sv.penumbraColor = v.posZ / radius
+                    val idx = (dropShadowVertices!!.size() + 1) / 2
+                    dropShadowVertices!!.add(idx, sv)
                 }
                 // Self shadow is cast partly over mesh.
-                if (DRAW_SHADOW && v.mPosZ > radius) {
-                    val sv = arrTempShadowVertices!!.remove(0)!!
-                    sv.mPosX = v.mPosX
-                    sv.mPosY = v.mPosY
-                    sv.mPosZ = v.mPosZ
-                    sv.mPenumbraX = (v.mPosZ - radius) / 3 * v.mPenumbraX
-                    sv.mPenumbraY = (v.mPosZ - radius) / 3 * v.mPenumbraY
-                    sv.mPenumbraColor = (v.mPosZ - radius) / (2 * radius)
-                    val idx = (arrSelfShadowVertices!!.size() + 1) / 2
-                    arrSelfShadowVertices!!.add(idx, sv)
+                if (DRAW_SHADOW && v.posZ > radius) {
+                    val sv = tempShadowVertices!!.remove(0)!!
+                    sv.posX = v.posX
+                    sv.posY = v.posY
+                    sv.posZ = v.posZ
+                    sv.penumbraX = (v.posZ - radius) / 3 * v.penumbraX
+                    sv.penumbraY = (v.posZ - radius) / 3 * v.penumbraY
+                    sv.penumbraColor = (v.posZ - radius) / (2 * radius)
+                    val idx = (selfShadowVertices!!.size() + 1) / 2
+                    selfShadowVertices!!.add(idx, sv)
                 }
             }
             // Switch scanXmin as scanXmax for next iteration.
             scanXmax = scanXmin
         }
-        bufVertices.position(0)
-        bufColors.position(0)
-        if (DRAW_TEXTURE) bufTexCoords!!.position(0)
+        verticesBuffer.position(0)
+        colorsBuffer.position(0)
+        if (DRAW_TEXTURE) texCoordsBuffer!!.position(0)
         // Add shadow Vertices.
         if (DRAW_SHADOW) {
-            bufShadowColors!!.position(0)
-            bufShadowVertices!!.position(0)
+            shadowColorsBuffer!!.position(0)
+            shadowVerticesBuffer!!.position(0)
             dropShadowCount = 0
-            for (i in 0 until arrDropShadowVertices!!.size()) {
-                val sv = arrDropShadowVertices!![i]!!
-                bufShadowVertices!!.put(sv.mPosX.toFloat())
-                bufShadowVertices!!.put(sv.mPosY.toFloat())
-                bufShadowVertices!!.put(sv.mPosZ.toFloat())
-                bufShadowVertices!!.put((sv.mPosX + sv.mPenumbraX).toFloat())
-                bufShadowVertices!!.put((sv.mPosY + sv.mPenumbraY).toFloat())
-                bufShadowVertices!!.put(sv.mPosZ.toFloat())
+            for (i in 0 until dropShadowVertices!!.size()) {
+                val sv = dropShadowVertices!![i]!!
+                shadowVerticesBuffer!!.put(sv.posX.toFloat())
+                shadowVerticesBuffer!!.put(sv.posY.toFloat())
+                shadowVerticesBuffer!!.put(sv.posZ.toFloat())
+                shadowVerticesBuffer!!.put((sv.posX + sv.penumbraX).toFloat())
+                shadowVerticesBuffer!!.put((sv.posY + sv.penumbraY).toFloat())
+                shadowVerticesBuffer!!.put(sv.posZ.toFloat())
                 for (j in 0..3) {
-                    val color = SHADOW_OUTER_COLOR[j] + (SHADOW_INNER_COLOR[j] - SHADOW_OUTER_COLOR[j]) * sv.mPenumbraColor
-                    bufShadowColors!!.put(color.toFloat())
+                    val color = SHADOW_OUTER_COLOR[j] + (SHADOW_INNER_COLOR[j] - SHADOW_OUTER_COLOR[j]) * sv.penumbraColor
+                    shadowColorsBuffer!!.put(color.toFloat())
                 }
-                bufShadowColors!!.put(SHADOW_OUTER_COLOR)
+                shadowColorsBuffer!!.put(SHADOW_OUTER_COLOR)
                 dropShadowCount += 2
             }
             selfShadowCount = 0
-            for (i in 0 until arrSelfShadowVertices!!.size()) {
-                val sv = arrSelfShadowVertices!![i]!!
-                bufShadowVertices!!.put(sv.mPosX.toFloat())
-                bufShadowVertices!!.put(sv.mPosY.toFloat())
-                bufShadowVertices!!.put(sv.mPosZ.toFloat())
-                bufShadowVertices!!.put((sv.mPosX + sv.mPenumbraX).toFloat())
-                bufShadowVertices!!.put((sv.mPosY + sv.mPenumbraY).toFloat())
-                bufShadowVertices!!.put(sv.mPosZ.toFloat())
+            for (i in 0 until selfShadowVertices!!.size()) {
+                val sv = selfShadowVertices!![i]!!
+                shadowVerticesBuffer!!.put(sv.posX.toFloat())
+                shadowVerticesBuffer!!.put(sv.posY.toFloat())
+                shadowVerticesBuffer!!.put(sv.posZ.toFloat())
+                shadowVerticesBuffer!!.put((sv.posX + sv.penumbraX).toFloat())
+                shadowVerticesBuffer!!.put((sv.posY + sv.penumbraY).toFloat())
+                shadowVerticesBuffer!!.put(sv.posZ.toFloat())
                 for (j in 0..3) {
-                    val color = SHADOW_OUTER_COLOR[j] + (SHADOW_INNER_COLOR[j] - SHADOW_OUTER_COLOR[j]) * sv.mPenumbraColor
-                    bufShadowColors!!.put(color.toFloat())
+                    val color = SHADOW_OUTER_COLOR[j] + (SHADOW_INNER_COLOR[j] - SHADOW_OUTER_COLOR[j]) * sv.penumbraColor
+                    shadowColorsBuffer!!.put(color.toFloat())
                 }
-                bufShadowColors!!.put(SHADOW_OUTER_COLOR)
+                shadowColorsBuffer!!.put(SHADOW_OUTER_COLOR)
                 selfShadowCount += 2
             }
-            bufShadowColors!!.position(0)
-            bufShadowVertices!!.position(0)
+            shadowColorsBuffer!!.position(0)
+            shadowVerticesBuffer!!.position(0)
         }
     }
 
@@ -388,7 +392,7 @@ class CurlMesh(maxCurlSplits: Int) {
      * Calculates intersections for given scan line.
      */
     private fun getIntersections(vertices: Array<Vertex>, lineIndices: kotlin.Array<IntArray>, scanX: Double): Array<Vertex> {
-        arrIntersections.clear()
+        intersections.clear()
         // Iterate through rectangle lines each re-presented as a pair of
 // vertices.
         for (j in lineIndices.indices) {
@@ -396,25 +400,25 @@ class CurlMesh(maxCurlSplits: Int) {
             val v2 = vertices[lineIndices[j][1]]!!
             // Here we expect that v1.mPosX >= v2.mPosX and wont do intersection
 // test the opposite way.
-            if (v1.mPosX > scanX && v2.mPosX < scanX) { // There is an intersection, calculate coefficient telling 'how
+            if (v1.posX > scanX && v2.posX < scanX) { // There is an intersection, calculate coefficient telling 'how
 // far' scanX is from v2.
-                val c = (scanX - v2.mPosX) / (v1.mPosX - v2.mPosX)
-                val n = arrTempVertices.remove(0)!!
+                val c = (scanX - v2.posX) / (v1.posX - v2.posX)
+                val n = tempVertices.remove(0)!!
                 n.set(v2)
-                n.mPosX = scanX
-                n.mPosY += (v1.mPosY - v2.mPosY) * c
+                n.posX = scanX
+                n.posY += (v1.posY - v2.posY) * c
                 if (DRAW_TEXTURE) {
-                    n.mTexX += (v1.mTexX - v2.mTexX) * c
-                    n.mTexY += (v1.mTexY - v2.mTexY) * c
+                    n.texX += (v1.texX - v2.texX) * c
+                    n.texY += (v1.texY - v2.texY) * c
                 }
                 if (DRAW_SHADOW) {
-                    n.mPenumbraX += (v1.mPenumbraX - v2.mPenumbraX) * c
-                    n.mPenumbraY += (v1.mPenumbraY - v2.mPenumbraY) * c
+                    n.penumbraX += (v1.penumbraX - v2.penumbraX) * c
+                    n.penumbraY += (v1.penumbraY - v2.penumbraY) * c
                 }
-                arrIntersections.add(n)
+                intersections.add(n)
             }
         }
-        return arrIntersections
+        return intersections
     }
 
     /**
@@ -438,7 +442,7 @@ class CurlMesh(maxCurlSplits: Int) {
             var texture = texturePage.getTexture(textureRectFront, PageSide.Front)
             GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, texture, 0)
             texture.recycle()
-            textureBack = texturePage.hasBackTexture()
+            textureBack = texturePage.hasBackTexture
             if (textureBack) {
                 gl.glBindTexture(GL10.GL_TEXTURE_2D, textureIds!![1])
                 texture = texturePage.getTexture(textureRectBack, PageSide.Back)
@@ -457,20 +461,20 @@ class CurlMesh(maxCurlSplits: Int) {
             gl.glEnable(GL10.GL_BLEND)
             gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA)
             gl.glEnableClientState(GL10.GL_COLOR_ARRAY)
-            gl.glColorPointer(4, GL10.GL_FLOAT, 0, bufShadowColors)
-            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, bufShadowVertices)
+            gl.glColorPointer(4, GL10.GL_FLOAT, 0, shadowColorsBuffer)
+            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, shadowVerticesBuffer)
             gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, dropShadowCount)
             gl.glDisableClientState(GL10.GL_COLOR_ARRAY)
             gl.glDisable(GL10.GL_BLEND)
         }
         if (DRAW_TEXTURE) {
             gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY)
-            gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, bufTexCoords)
+            gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, texCoordsBuffer)
         }
-        gl.glVertexPointer(3, GL10.GL_FLOAT, 0, bufVertices)
+        gl.glVertexPointer(3, GL10.GL_FLOAT, 0, verticesBuffer)
         // Enable color array.
         gl.glEnableClientState(GL10.GL_COLOR_ARRAY)
-        gl.glColorPointer(4, GL10.GL_FLOAT, 0, bufColors)
+        gl.glColorPointer(4, GL10.GL_FLOAT, 0, colorsBuffer)
         // Draw front facing blank vertices.
         gl.glDisable(GL10.GL_TEXTURE_2D)
         gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, verticesCountFront)
@@ -510,7 +514,7 @@ class CurlMesh(maxCurlSplits: Int) {
             gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA)
             gl.glLineWidth(1.0f)
             gl.glColor4f(0.5f, 0.5f, 1.0f, 1.0f)
-            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, bufVertices)
+            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, verticesBuffer)
             gl.glDrawArrays(GL10.GL_LINE_STRIP, 0, verticesCountFront)
             gl.glDisable(GL10.GL_BLEND)
         }
@@ -519,7 +523,7 @@ class CurlMesh(maxCurlSplits: Int) {
             gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA)
             gl.glLineWidth(1.0f)
             gl.glColor4f(1.0f, 0.5f, 0.5f, 1.0f)
-            gl.glVertexPointer(2, GL10.GL_FLOAT, 0, bufCurlPositionLines)
+            gl.glVertexPointer(2, GL10.GL_FLOAT, 0, curlPositionLinesBuffer)
             gl.glDrawArrays(GL10.GL_LINES, 0, curlPositionLinesCount * 2)
             gl.glDisable(GL10.GL_BLEND)
         }
@@ -527,8 +531,8 @@ class CurlMesh(maxCurlSplits: Int) {
             gl.glEnable(GL10.GL_BLEND)
             gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA)
             gl.glEnableClientState(GL10.GL_COLOR_ARRAY)
-            gl.glColorPointer(4, GL10.GL_FLOAT, 0, bufShadowColors)
-            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, bufShadowVertices)
+            gl.glColorPointer(4, GL10.GL_FLOAT, 0, shadowColorsBuffer)
+            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, shadowVerticesBuffer)
             gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, dropShadowCount,
                 selfShadowCount)
             gl.glDisableClientState(GL10.GL_COLOR_ARRAY)
@@ -543,29 +547,29 @@ class CurlMesh(maxCurlSplits: Int) {
      */
     @Synchronized
     fun reset() {
-        bufVertices.position(0)
-        bufColors.position(0)
-        if (DRAW_TEXTURE) bufTexCoords!!.position(0)
+        verticesBuffer.position(0)
+        colorsBuffer.position(0)
+        if (DRAW_TEXTURE) texCoordsBuffer!!.position(0)
         for (i in 0..3) {
-            val tmp = arrTempVertices[0]!!
+            val tmp = tempVertices[0]!!
             tmp.set(rectangle[i]!!)
             if (flipTexture) {
-                tmp.mTexX *= textureRectBack.right.toDouble()
-                tmp.mTexY *= textureRectBack.bottom.toDouble()
-                tmp.mColor = texturePage.getColor(PageSide.Back)
+                tmp.texX *= textureRectBack.right.toDouble()
+                tmp.texY *= textureRectBack.bottom.toDouble()
+                tmp.color = texturePage.getColor(PageSide.Back)
             } else {
-                tmp.mTexX *= textureRectFront.right.toDouble()
-                tmp.mTexY *= textureRectFront.bottom.toDouble()
-                tmp.mColor = texturePage.getColor(PageSide.Front)
+                tmp.texX *= textureRectFront.right.toDouble()
+                tmp.texY *= textureRectFront.bottom.toDouble()
+                tmp.color = texturePage.getColor(PageSide.Front)
             }
             addVertex(tmp)
         }
         verticesCountFront = 4
         verticesCountBack = 0
-        bufVertices.position(0)
-        bufColors.position(0)
+        verticesBuffer.position(0)
+        colorsBuffer.position(0)
         if (DRAW_TEXTURE) {
-            bufTexCoords!!.position(0)
+            texCoordsBuffer!!.position(0)
         }
         selfShadowCount = 0
         dropShadowCount = selfShadowCount
@@ -600,14 +604,14 @@ class CurlMesh(maxCurlSplits: Int) {
      * Update mesh bounds.
      */
     fun setRect(r: RectF) {
-        rectangle[0]!!.mPosX = r.left.toDouble()
-        rectangle[0]!!.mPosY = r.top.toDouble()
-        rectangle[1]!!.mPosX = r.left.toDouble()
-        rectangle[1]!!.mPosY = r.bottom.toDouble()
-        rectangle[2]!!.mPosX = r.right.toDouble()
-        rectangle[2]!!.mPosY = r.top.toDouble()
-        rectangle[3]!!.mPosX = r.right.toDouble()
-        rectangle[3]!!.mPosY = r.bottom.toDouble()
+        rectangle[0]!!.posX = r.left.toDouble()
+        rectangle[0]!!.posY = r.top.toDouble()
+        rectangle[1]!!.posX = r.left.toDouble()
+        rectangle[1]!!.posY = r.bottom.toDouble()
+        rectangle[2]!!.posX = r.right.toDouble()
+        rectangle[2]!!.posY = r.top.toDouble()
+        rectangle[3]!!.posX = r.right.toDouble()
+        rectangle[3]!!.posY = r.bottom.toDouble()
     }
 
     /**
@@ -615,14 +619,14 @@ class CurlMesh(maxCurlSplits: Int) {
      */
     @Synchronized
     private fun setTexCoords(left: Float, top: Float, right: Float, bottom: Float) {
-        rectangle[0]!!.mTexX = left.toDouble()
-        rectangle[0]!!.mTexY = top.toDouble()
-        rectangle[1]!!.mTexX = left.toDouble()
-        rectangle[1]!!.mTexY = bottom.toDouble()
-        rectangle[2]!!.mTexX = right.toDouble()
-        rectangle[2]!!.mTexY = top.toDouble()
-        rectangle[3]!!.mTexX = right.toDouble()
-        rectangle[3]!!.mTexY = bottom.toDouble()
+        rectangle[0]!!.texX = left.toDouble()
+        rectangle[0]!!.texY = top.toDouble()
+        rectangle[1]!!.texX = left.toDouble()
+        rectangle[1]!!.texY = bottom.toDouble()
+        rectangle[2]!!.texX = right.toDouble()
+        rectangle[2]!!.texY = top.toDouble()
+        rectangle[3]!!.texX = right.toDouble()
+        rectangle[3]!!.texY = bottom.toDouble()
     }
 
     /**
@@ -706,37 +710,37 @@ class CurlMesh(maxCurlSplits: Int) {
      */
     init { // There really is no use for 0 splits.
         this.maxCurlSplits = if (maxCurlSplits < 1) 1 else maxCurlSplits
-        arrScanLines = Array(maxCurlSplits + 2)
-        arrOutputVertices = Array(7)
-        arrRotatedVertices = Array(4)
-        arrIntersections = Array(2)
-        arrTempVertices = Array(7 + 4)
-        for (i in 0 until 7 + 4) arrTempVertices.add(Vertex())
+        scanLines = Array(maxCurlSplits + 2)
+        outputVertices = Array(7)
+        rotatedVertices = Array(4)
+        intersections = Array(2)
+        tempVertices = Array(7 + 4)
+        for (i in 0 until 7 + 4) tempVertices.add(Vertex())
         if (DRAW_SHADOW) {
-            arrSelfShadowVertices = Array((this.maxCurlSplits + 2) * 2)
-            arrDropShadowVertices = Array((this.maxCurlSplits + 2) * 2)
-            arrTempShadowVertices = Array((this.maxCurlSplits + 2) * 2)
-            for (i in 0 until (this.maxCurlSplits + 2) * 2) arrTempShadowVertices!!.add(ShadowVertex())
+            selfShadowVertices = Array((this.maxCurlSplits + 2) * 2)
+            dropShadowVertices = Array((this.maxCurlSplits + 2) * 2)
+            tempShadowVertices = Array((this.maxCurlSplits + 2) * 2)
+            for (i in 0 until (this.maxCurlSplits + 2) * 2) tempShadowVertices!!.add(ShadowVertex())
         }
         // Rectangle consists of 4 vertices. Index 0 = top-left, index 1 =
 // bottom-left, index 2 = top-right and index 3 = bottom-right.
         for (i in 0..3) rectangle[i] = Vertex()
         // Set up shadow penumbra direction to each vertex. We do fake 'self
 // shadow' calculations based on this information.
-        rectangle[3]!!.mPenumbraY = -1.0
-        rectangle[1]!!.mPenumbraY = rectangle[3]!!.mPenumbraY
-        rectangle[1]!!.mPenumbraX = rectangle[1]!!.mPenumbraY
-        rectangle[0]!!.mPenumbraX = rectangle[1]!!.mPenumbraX
-        rectangle[3]!!.mPenumbraX = 1.0
-        rectangle[2]!!.mPenumbraY = rectangle[3]!!.mPenumbraX
-        rectangle[2]!!.mPenumbraX = rectangle[2]!!.mPenumbraY
-        rectangle[0]!!.mPenumbraY = rectangle[2]!!.mPenumbraX
+        rectangle[3]!!.penumbraY = -1.0
+        rectangle[1]!!.penumbraY = rectangle[3]!!.penumbraY
+        rectangle[1]!!.penumbraX = rectangle[1]!!.penumbraY
+        rectangle[0]!!.penumbraX = rectangle[1]!!.penumbraX
+        rectangle[3]!!.penumbraX = 1.0
+        rectangle[2]!!.penumbraY = rectangle[3]!!.penumbraX
+        rectangle[2]!!.penumbraX = rectangle[2]!!.penumbraY
+        rectangle[0]!!.penumbraY = rectangle[2]!!.penumbraX
         if (DRAW_CURL_POSITION) {
             curlPositionLinesCount = 3
             val hvbb = ByteBuffer.allocateDirect(curlPositionLinesCount * 2 * 2 * 4)
             hvbb.order(ByteOrder.nativeOrder())
-            bufCurlPositionLines = hvbb.asFloatBuffer()
-            bufCurlPositionLines!!.position(0)
+            curlPositionLinesBuffer = hvbb.asFloatBuffer()
+            curlPositionLinesBuffer!!.position(0)
         }
         // There are 4 vertices from bounding rect, max 2 from adding split line
 // to two corners and curl consists of max maxCurlSplits lines each
@@ -744,28 +748,28 @@ class CurlMesh(maxCurlSplits: Int) {
         val maxVerticesCount = 4 + 2 + 2 * this.maxCurlSplits
         val vbb = ByteBuffer.allocateDirect(maxVerticesCount * 3 * 4)
         vbb.order(ByteOrder.nativeOrder())
-        bufVertices = vbb.asFloatBuffer()
-        bufVertices.position(0)
+        verticesBuffer = vbb.asFloatBuffer()
+        verticesBuffer.position(0)
         if (DRAW_TEXTURE) {
             val tbb = ByteBuffer.allocateDirect(maxVerticesCount * 2 * 4)
             tbb.order(ByteOrder.nativeOrder())
-            bufTexCoords = tbb.asFloatBuffer()
-            bufTexCoords!!.position(0)
+            texCoordsBuffer = tbb.asFloatBuffer()
+            texCoordsBuffer!!.position(0)
         }
         val cbb = ByteBuffer.allocateDirect(maxVerticesCount * 4 * 4)
         cbb.order(ByteOrder.nativeOrder())
-        bufColors = cbb.asFloatBuffer()
-        bufColors.position(0)
+        colorsBuffer = cbb.asFloatBuffer()
+        colorsBuffer.position(0)
         if (DRAW_SHADOW) {
             val maxShadowVerticesCount = (this.maxCurlSplits + 2) * 2 * 2
             val scbb = ByteBuffer.allocateDirect(maxShadowVerticesCount * 4 * 4)
             scbb.order(ByteOrder.nativeOrder())
-            bufShadowColors = scbb.asFloatBuffer()
-            bufShadowColors!!.position(0)
+            shadowColorsBuffer = scbb.asFloatBuffer()
+            shadowColorsBuffer!!.position(0)
             val sibb = ByteBuffer.allocateDirect(maxShadowVerticesCount * 3 * 4)
             sibb.order(ByteOrder.nativeOrder())
-            bufShadowVertices = sibb.asFloatBuffer()
-            bufShadowVertices!!.position(0)
+            shadowVerticesBuffer = sibb.asFloatBuffer()
+            shadowVerticesBuffer!!.position(0)
             selfShadowCount = 0
             dropShadowCount = selfShadowCount
         }

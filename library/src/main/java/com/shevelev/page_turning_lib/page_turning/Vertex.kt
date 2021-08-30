@@ -28,50 +28,54 @@ package com.shevelev.page_turning_lib.page_turning
  * Holder for vertex information.
  */
 internal class Vertex {
-    var mColor = 0
-    var mColorFactor: Float
-    var mPenumbraX = 0.0
-    var mPenumbraY = 0.0
-    var mPosX: Double
-    var mPosY: Double
-    var mPosZ: Double
-    var mTexX: Double
-    var mTexY = 0.0
+    var color = 0
+    var colorFactor: Float
+
+    var penumbraX = 0.0
+    var penumbraY = 0.0
+
+    var posX: Double
+    var posY: Double
+    var posZ: Double
+
+    var texX: Double
+    var texY = 0.0
+
+    init {
+        texX = texY
+        posZ = texX
+        posY = posZ
+        posX = posY
+        colorFactor = 1.0f
+    }
+
     fun rotateZ(theta: Double) {
         val cos = Math.cos(theta)
         val sin = Math.sin(theta)
-        val x = mPosX * cos + mPosY * sin
-        val y = mPosX * -sin + mPosY * cos
-        mPosX = x
-        mPosY = y
-        val px = mPenumbraX * cos + mPenumbraY * sin
-        val py = mPenumbraX * -sin + mPenumbraY * cos
-        mPenumbraX = px
-        mPenumbraY = py
+        val x = posX * cos + posY * sin
+        val y = posX * -sin + posY * cos
+        posX = x
+        posY = y
+        val px = penumbraX * cos + penumbraY * sin
+        val py = penumbraX * -sin + penumbraY * cos
+        penumbraX = px
+        penumbraY = py
     }
 
     fun set(vertex: Vertex) {
-        mPosX = vertex.mPosX
-        mPosY = vertex.mPosY
-        mPosZ = vertex.mPosZ
-        mTexX = vertex.mTexX
-        mTexY = vertex.mTexY
-        mPenumbraX = vertex.mPenumbraX
-        mPenumbraY = vertex.mPenumbraY
-        mColor = vertex.mColor
-        mColorFactor = vertex.mColorFactor
+        posX = vertex.posX
+        posY = vertex.posY
+        posZ = vertex.posZ
+        texX = vertex.texX
+        texY = vertex.texY
+        penumbraX = vertex.penumbraX
+        penumbraY = vertex.penumbraY
+        color = vertex.color
+        colorFactor = vertex.colorFactor
     }
 
     fun translate(dx: Double, dy: Double) {
-        mPosX += dx
-        mPosY += dy
-    }
-
-    init {
-        mTexX = mTexY
-        mPosZ = mTexX
-        mPosY = mPosZ
-        mPosX = mPosY
-        mColorFactor = 1.0f
+        posX += dx
+        posY += dy
     }
 }

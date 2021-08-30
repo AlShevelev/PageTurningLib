@@ -25,8 +25,7 @@
 package com.shevelev.page_turning_lib.page_turning
 
 /**
- * Provider for feeding 'book' with bitmaps which are used for rendering
- * pages.
+ * Provider for feeding 'book' with bitmaps which are used for rendering pages.
  */
 interface PageProvider {
     /**

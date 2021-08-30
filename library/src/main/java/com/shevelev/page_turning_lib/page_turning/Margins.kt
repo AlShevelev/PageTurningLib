@@ -24,4 +24,9 @@
 
 package com.shevelev.page_turning_lib.page_turning
 
-class Margins(var left: Float, var top: Float, var right: Float, var bottom: Float)
+class Margins(
+    val left: Float,
+    val top: Float,
+    val right: Float,
+    val bottom: Float
+)
