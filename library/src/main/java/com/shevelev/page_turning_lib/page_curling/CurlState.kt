@@ -22,10 +22,10 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.page_turning
+package com.shevelev.page_turning_lib.page_curling
 
-enum class PageSide {
-    Back,
-    Front,
-    Both
+internal enum class CurlState {
+    Left,
+    Right,
+    None
 }

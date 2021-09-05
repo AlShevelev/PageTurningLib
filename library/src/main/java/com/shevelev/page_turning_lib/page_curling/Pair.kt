@@ -22,18 +22,6 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.structs
+package com.shevelev.page_turning_lib.page_curling
 
-import android.util.Size
-
-/**
- * Some area
- * @property id unique id of the area
- * @property leftTop left-top corner of the area (in pixels)
- * @property size size of the area (in pixels)
- */
-class Area(
-    val id: Int,
-    val leftTop: Point,
-    val size: Size
-)
+internal class Pair<T>(var value1: T, var value2: T)

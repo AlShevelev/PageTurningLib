@@ -26,7 +26,6 @@ package com.shevelev.page_turning_lib.user_actions_managing
 
 import android.graphics.PointF
 import android.view.MotionEvent
-import com.shevelev.page_turning_lib.structs.Area
 
 /**
  * Transforms touch events to commands for [managedObject]

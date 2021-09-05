@@ -22,14 +22,17 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.page_turning
-
-import android.graphics.PointF
+package com.shevelev.page_turning_lib.page_curling
 
 /**
- * Simple holder for pointer position.
+ * Holder for shadow vertex information.
  */
-class PointerPosition(
-    var pos: PointF,
-    var pressure: Float
-)
+internal class ShadowVertex {
+    var penumbraColor = 0.0
+    var penumbraX = 0.0
+    var penumbraY = 0.0
+
+    var posX = 0.0
+    var posY = 0.0
+    var posZ = 0.0
+}

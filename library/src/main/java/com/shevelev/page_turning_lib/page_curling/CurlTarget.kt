@@ -22,16 +22,10 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.page_turning
+package com.shevelev.page_turning_lib.page_curling
 
-import android.graphics.RectF
-import android.util.SizeF
-
-/**
- * Information about renderer view
- * [viewAreaSize] Size of view area [px]
- */
-class RendererViewInfo(
-    val viewRect: RectF,
-    val viewAreaSize: SizeF
-)
+internal enum class CurlTarget {
+    None,
+    ToLeft,
+    ToRight
+}

@@ -22,14 +22,17 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.page_turning
+package com.shevelev.page_turning_lib.page_curling
+
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * Holder for vertex information.
  */
 internal class Vertex {
     var color = 0
-    var colorFactor: Float
+    var colorFactor = 1.0f
 
     var penumbraX = 0.0
     var penumbraY = 0.0
@@ -43,21 +46,25 @@ internal class Vertex {
 
     init {
         texX = texY
+
         posZ = texX
         posY = posZ
         posX = posY
-        colorFactor = 1.0f
     }
 
     fun rotateZ(theta: Double) {
-        val cos = Math.cos(theta)
-        val sin = Math.sin(theta)
+        val cos = cos(theta)
+        val sin = sin(theta)
+
         val x = posX * cos + posY * sin
         val y = posX * -sin + posY * cos
+
         posX = x
         posY = y
+
         val px = penumbraX * cos + penumbraY * sin
         val py = penumbraX * -sin + penumbraY * cos
+
         penumbraX = px
         penumbraY = py
     }
@@ -66,10 +73,13 @@ internal class Vertex {
         posX = vertex.posX
         posY = vertex.posY
         posZ = vertex.posZ
+
         texX = vertex.texX
         texY = vertex.texY
+
         penumbraX = vertex.penumbraX
         penumbraY = vertex.penumbraY
+
         color = vertex.color
         colorFactor = vertex.colorFactor
     }

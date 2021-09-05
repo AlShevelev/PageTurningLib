@@ -22,10 +22,27 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.page_turning
+package com.shevelev.page_turning_lib.page_curling
 
-enum class CurlTarget {
-    None,
-    ToLeft,
-    ToRight
+/**
+ * Observer for waiting render engine/state updates.
+ */
+interface CurlRendererObserver {
+    /**
+     * Called from onDrawFrame called before rendering is started. This is
+     * intended to be used for animation purposes.
+     */
+    fun onDrawFrame()
+
+    /**
+     * Called once page size is changed. Width and height tell the page size
+     * in pixels making it possible to update textures accordingly.
+     */
+    fun onPageSizeChanged(width: Int, height: Int)
+
+    /**
+     * Called from onSurfaceCreated to enable texture re-initialization etc
+     * what needs to be done when this happens.
+     */
+    fun onSurfaceCreated()
 }

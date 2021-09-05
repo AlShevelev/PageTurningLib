@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.page_turning
+package com.shevelev.page_turning_lib.page_curling
 
 import android.graphics.Bitmap
 import android.graphics.Canvas

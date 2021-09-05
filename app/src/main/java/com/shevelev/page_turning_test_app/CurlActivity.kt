@@ -2,11 +2,13 @@ package com.shevelev.page_turning_test_app
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import com.shevelev.page_turning_lib.page_turning.CurlView
+import com.shevelev.page_turning_lib.page_curling.CurlView
+import com.shevelev.page_turning_lib.page_curling.CurlViewEventsHandler
 import com.shevelev.page_turning_test_app.page_provider.PageProviderImpl
 
 class CurlActivity : AppCompatActivity() {
@@ -17,19 +19,22 @@ class CurlActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_curl)
 //        val currentPageIndex = DalFacade.Comics.getComicsById(comicsId)!!.lastViewedPageIndex
-        curlView = findViewById<View>(R.id.curl) as CurlView
-        curlView!!.setPageProvider(PageProviderImpl(this))
-        curlView!!.initCurrentPageIndex(0)
-        curlView!!.setBackgroundColor(-0xdfd7d0)
 
-        curlView!!.setCallbackHandlers(
-            { pageIndex: Int -> onPageChanged(pageIndex) },
-            { onShowMenu() }
-        )
+        curlView = (findViewById<View>(R.id.curl) as? CurlView)?.also {
+            it.setPageProvider(PageProviderImpl(this))
+            it.initCurrentPageIndex(0)
+            it.setBackgroundColor(Color.WHITE/*-0xdfd7d0*/)
 
-        // This is something somewhat experimental. Before uncommenting next
-// line, please see method comments in CurlView.
-// curlView.setEnableTouchPressure(true);
+            it.setExternalEventsHandler(object: CurlViewEventsHandler{
+                override fun onPageChanged(newPageIndex: Int) {
+                    // do nothing so far
+                }
+
+                override fun onHotAreaPressed(areaId: Int) {
+                    // do nothing so far
+                }
+            })
+        }
 
         val metrics = DisplayMetrics()
         windowManager.defaultDisplay.getMetrics(metrics)
@@ -43,12 +48,6 @@ class CurlActivity : AppCompatActivity() {
     public override fun onResume() {
         super.onResume()
         curlView!!.onResume()
-    }
-
-    private fun onPageChanged(currentPageIndex: Int) {
-    }
-
-    private fun onShowMenu() {
     }
 
     companion object {

@@ -22,15 +22,16 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.structs
+package com.shevelev.page_turning_lib.page_curling
 
-class Point(
-    /**
-     * Left coordinate as a portion of total size ([0-1])
-     */
-    val left: Int,
-    /**
-     * Top coordinate as a portion of total size ([0-1])
-     */
-    val top: Int
+import android.graphics.RectF
+import android.util.SizeF
+
+/**
+ * Information about renderer view
+ * @property viewAreaSize Size of view area in pixels
+ */
+internal class RendererViewInfo(
+    val viewRect: RectF,
+    val viewAreaSize: SizeF
 )

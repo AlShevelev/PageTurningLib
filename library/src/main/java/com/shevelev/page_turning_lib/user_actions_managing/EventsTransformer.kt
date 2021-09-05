@@ -26,8 +26,6 @@ package com.shevelev.page_turning_lib.user_actions_managing
 
 import android.graphics.PointF
 import android.view.MotionEvent
-import com.shevelev.page_turning_lib.structs.Area
-import com.shevelev.page_turning_lib.structs.Point
 
 /**
  * Transform device's touch and motion events to state machine's events

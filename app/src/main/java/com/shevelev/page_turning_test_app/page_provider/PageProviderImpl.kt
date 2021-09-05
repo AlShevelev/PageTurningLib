@@ -3,9 +3,9 @@ package com.shevelev.page_turning_test_app.page_provider
 import android.content.Context
 import android.graphics.*
 import android.util.Log
-import com.shevelev.page_turning_lib.page_turning.CurlPage
-import com.shevelev.page_turning_lib.page_turning.PageProvider
-import com.shevelev.page_turning_lib.page_turning.PageSide
+import com.shevelev.page_turning_lib.page_curling.CurlPage
+import com.shevelev.page_turning_lib.page_curling.PageProvider
+import com.shevelev.page_turning_lib.page_curling.PageSide
 import java.io.IOException
 
 /**
