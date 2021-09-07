@@ -25,6 +25,8 @@
 package com.shevelev.page_turning_lib.user_actions_managing
 
 import android.graphics.PointF
+import android.util.Range
+import android.util.Size
 import android.view.MotionEvent
 
 /**
@@ -33,6 +35,8 @@ import android.view.MotionEvent
  */
 class EventsTransformer(private val hotAreas: List<Area>) {
     private var lastMoveEvent: Event? = null
+
+    private var screenSize: Size? = null
 
     /**
      * Resets internal state
@@ -79,6 +83,10 @@ class EventsTransformer(private val hotAreas: List<Area>) {
         }
     }
 
+    fun setScreenSize(size: Size) {
+        screenSize = size
+    }
+
     private fun getActionDownEvent(points: List<PointF>, pressure: Float): Event {
         val lastPoint = Point(points[0].x.toInt(), points[0].y.toInt())
 
@@ -87,7 +95,14 @@ class EventsTransformer(private val hotAreas: List<Area>) {
         return if (hitAreaId != null) {
             OneFingerDownInHotArea(hitAreaId)
         } else {
-            OneFingerDown(points, pressure)
+            calculateNonCurlingArea()?.let {
+                if(lastPoint.x in it) {
+                    OneFingerDown(points, pressure)
+                } else {
+                    OneFingerDownInCurlingArea(points, pressure)
+                }
+            }
+                ?: OneFingerDown(points, pressure)
         }
     }
 
@@ -100,12 +115,12 @@ class EventsTransformer(private val hotAreas: List<Area>) {
     private fun isHitHotArea(testedPoint: Point): Int? {
         hotAreas.forEach { area ->
             with(area) {
-                val rightBottom = Point(leftTop.left + size.width, leftTop.top + size.height)
+                val rightBottom = Point(leftTop.x + size.width, leftTop.y + size.height)
 
-                val isHit = testedPoint.left >= leftTop.left &&
-                    testedPoint.left <= rightBottom.left &&
-                    testedPoint.top >= leftTop.top &&
-                    testedPoint.top <= rightBottom.top
+                val isHit = testedPoint.x >= leftTop.x &&
+                    testedPoint.x <= rightBottom.x &&
+                    testedPoint.y >= leftTop.y &&
+                    testedPoint.y <= rightBottom.y
 
                 if (isHit) {
                     return area.id
@@ -114,4 +129,13 @@ class EventsTransformer(private val hotAreas: List<Area>) {
         }
         return null
     }
+
+    private fun calculateNonCurlingArea(): Range<Int>? =
+        screenSize?.let {
+            // 1/8 and 1/16 part of relative width
+            val areaWidthFactor = if(it.width < it.height) 0.125f else 0.0625f
+
+            val lower = (it.width*areaWidthFactor).toInt()
+            Range(lower, it.width - lower)
+        }
 }

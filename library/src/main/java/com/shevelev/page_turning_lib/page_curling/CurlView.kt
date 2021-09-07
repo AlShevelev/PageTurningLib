@@ -28,6 +28,7 @@ import android.content.Context
 import android.graphics.PointF
 import android.opengl.GLSurfaceView
 import android.util.AttributeSet
+import android.util.Size
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
@@ -196,6 +197,7 @@ constructor(
 
         reset()
         screenDiagonal = sqrt(w.toDouble().pow(2.0) + h.toDouble().pow(2.0)).toFloat()
+        userActionManager?.setScreenSize(Size(w, h))
     }
 
     override fun startCurving(point: PointF, pressure: Float) {

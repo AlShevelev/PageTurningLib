@@ -48,6 +48,22 @@ class OneFingerDown(
  * @property points touch points
  * @property pressure size of finger's spot
  */
+class OneFingerDownInCurlingArea(
+    val points: List<PointF>,
+    val pressure: Float
+): Event()
+
+/**
+ * @property hotAreaId Id of a hot area
+ */
+class OneFingerDownInHotArea(
+    val hotAreaId: Int
+): Event()
+
+/**
+ * @property points touch points
+ * @property pressure size of finger's spot
+ */
 class NextFingerDown(
     val points: List<PointF>,
     val pressure: Float
@@ -87,11 +103,4 @@ class OneFingerUp(
 class Cancel(
     val points: List<PointF>,
     val pressure: Float
-): Event()
-
-/**
- * @property hotAreaId Id of a hot area
- */
-class OneFingerDownInHotArea(
-    val hotAreaId: Int
 ): Event()

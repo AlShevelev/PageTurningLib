@@ -25,12 +25,6 @@
 package com.shevelev.page_turning_lib.user_actions_managing
 
 class Point(
-    /**
-     * Left coordinate as a portion of total size ([0-1])
-     */
-    val left: Int,
-    /**
-     * Top coordinate as a portion of total size ([0-1])
-     */
-    val top: Int
+    val x: Int,
+    val y: Int
 )
