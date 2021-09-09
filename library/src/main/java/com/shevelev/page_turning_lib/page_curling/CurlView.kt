@@ -33,6 +33,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
 import com.shevelev.page_turning_lib.page_curling.PointsHelper.getDistance
+import com.shevelev.page_turning_lib.user_actions_managing.Area
 import com.shevelev.page_turning_lib.user_actions_managing.IUserActionsManaged
 import com.shevelev.page_turning_lib.user_actions_managing.UserActionManager
 import com.shevelev.page_turning_lib.user_actions_managing.ViewStateCodes
@@ -93,7 +94,7 @@ constructor(
     private var renderer = CurlRenderer(this)
     private val renderLeftPage = true
 
-    private var userActionManager: UserActionManager? = null
+    private var userActionManager = UserActionManager(this)
     private var resizingState: ResizingState? = null
 
     // Distance between points while resizing
@@ -111,8 +112,6 @@ constructor(
     private var externalEventsHandler: CurlViewEventsHandler? = null
 
     init {
-        userActionManager = UserActionManager(this, listOf())
-
         setRenderer(renderer)
         renderMode = RENDERMODE_WHEN_DIRTY
 
@@ -197,7 +196,7 @@ constructor(
 
         reset()
         screenDiagonal = sqrt(w.toDouble().pow(2.0) + h.toDouble().pow(2.0)).toFloat()
-        userActionManager?.setScreenSize(Size(w, h))
+        userActionManager.setScreenSize(Size(w, h))
     }
 
     override fun startCurving(point: PointF, pressure: Float) {
@@ -388,17 +387,8 @@ constructor(
             return false
         }
 
-        userActionManager!!.process(me, viewStateCodes)
+        userActionManager.process(me, viewStateCodes)
         return true
-    }
-
-    /**
-     * Calculate factor for changing margins while resizing;
-     */
-    private fun calculateResizingFactor(oldPointsDistance: Float, newPointsDistance: Float): Float {
-        val resizingMultiplier = 6f
-        val delta = newPointsDistance - oldPointsDistance
-        return resizingMultiplier * (delta / screenDiagonal)
     }
 
     /**
@@ -409,6 +399,14 @@ constructor(
     override fun setBackgroundColor(color: Int) {
         renderer.setBackgroundColor(color)
         requestRender()
+    }
+
+    /**
+     * Sets "hot" areas
+     * @param areas a set of "special" areas, touch in them fires OneFingerDownInHotArea event
+     */
+    fun setHotAreas(areas: List<Area>) {
+        userActionManager.setHotAreas(areas)
     }
 
     /**
@@ -443,6 +441,15 @@ constructor(
      */
     fun setExternalEventsHandler(handler: CurlViewEventsHandler) {
         externalEventsHandler = handler
+    }
+
+    /**
+     * Calculate factor for changing margins while resizing;
+     */
+    private fun calculateResizingFactor(oldPointsDistance: Float, newPointsDistance: Float): Float {
+        val resizingMultiplier = 6f
+        val delta = newPointsDistance - oldPointsDistance
+        return resizingMultiplier * (delta / screenDiagonal)
     }
 
     /**

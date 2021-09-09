@@ -31,15 +31,13 @@ import android.view.MotionEvent
 /**
  * Transforms touch events to commands for [managedObject]
  * @property managedObject an object to manage
- * @property hotAreas a set of "special" areas, touch in them fires OneFingerDownInHotArea event
  */
 class UserActionManager(
-    private val managedObject: IUserActionsManaged,
-    private val hotAreas: List<Area>
+    private val managedObject: IUserActionsManaged
 ) {
     private var currentState = States.Init
 
-    private val eventsTransformer = EventsTransformer(hotAreas)
+    private val eventsTransformer = EventsTransformer()
 
     private var lastHotAreaId : Int? = null
 
@@ -55,6 +53,14 @@ class UserActionManager(
     }
 
     fun setScreenSize(size: Size) = eventsTransformer.setScreenSize(size)
+
+    /**
+     * Sets "hot" areas
+     * @param areas a set of "special" areas, touch in them fires OneFingerDownInHotArea event
+     */
+    fun setHotAreas(areas: List<Area>) {
+        eventsTransformer.setHotAreas(areas)
+    }
 
     private fun processTransition(event: Event, viewStateCode: ViewStateCodes): States =
         when(currentState) {

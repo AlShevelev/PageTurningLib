@@ -31,12 +31,14 @@ import android.view.MotionEvent
 
 /**
  * Transform device's touch and motion events to state machine's events
- * @property hotAreas a set of "special" areas, touch in them fires OneFingerDownInHotArea event
  */
-class EventsTransformer(private val hotAreas: List<Area>) {
+class EventsTransformer {
     private var lastMoveEvent: Event? = null
 
     private var screenSize: Size? = null
+
+    // a set of "special" areas, touch in them fires OneFingerDownInHotArea event
+    private var hotAreas = listOf<Area>()
 
     /**
      * Resets internal state
@@ -85,6 +87,14 @@ class EventsTransformer(private val hotAreas: List<Area>) {
 
     fun setScreenSize(size: Size) {
         screenSize = size
+    }
+
+    /**
+     * Sets "hot" areas
+     * @param areas a set of "special" areas, touch in them fires OneFingerDownInHotArea event
+     */
+    fun setHotAreas(areas: List<Area>) {
+        hotAreas = areas
     }
 
     private fun getActionDownEvent(points: List<PointF>, pressure: Float): Event {
