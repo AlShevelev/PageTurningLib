@@ -5,25 +5,21 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import com.shevelev.page_turning_lib.page_curling.ResizingState
 import com.shevelev.page_turning_test_app.R
+import com.shevelev.page_turning_test_app.page_provider.caching.BitmapCache
 import java.util.*
 
 /**
  * Caches one bitmap of max size per page
  */
 class BitmapRepositoryImpl(private val context: Context) : BitmapRepository {
-    private val cachedBitmaps: MutableMap<Int, Bitmap> = TreeMap()
+    private val cachedBitmaps = BitmapCache(6)
 
     override val pageCount: Int = 6
 
     private val bitmapIds = listOf(R.raw.p240035, R.raw.p7240031, R.raw.p7240039, R.raw.p8010067, R.raw.p8150085, R.raw.p8150090)
 
-    override fun getByIndex(index: Int, viewAreaWidth: Int, viewAreaHeight: Int): Bitmap {
-        return cachedBitmaps[index]
-            ?: loadBitmap(index, viewAreaWidth, viewAreaHeight)
-                .also {
-                    cachedBitmaps[index] = it
-                }
-    }
+    override fun getByIndex(index: Int, viewAreaWidth: Int, viewAreaHeight: Int): Bitmap =
+        cachedBitmaps.get(index) { loadBitmap(index, viewAreaWidth, viewAreaHeight) }
 
     private fun loadBitmap(index: Int, viewAreaWidth: Int, viewAreaHeight: Int): Bitmap {
         context.resources.openRawResource(bitmapIds[index]).use { stream ->

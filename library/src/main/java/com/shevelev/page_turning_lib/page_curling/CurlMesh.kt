@@ -489,13 +489,13 @@ internal class CurlMesh(private val maxCurlSplits: Int) {
         if (DEBUG_DRAW_TEXTURE && texturePage.texturesChanged) {
             gl.glBindTexture(GL10.GL_TEXTURE_2D, textureIds!![0])
             var texture = texturePage.getTexture(textureRectFront, PageSide.Front)
-            GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, texture, 0)
+            GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, texture.bitmap, 0)
             texture.recycle()
             textureBack = texturePage.hasBackTexture
             if (textureBack) {
                 gl.glBindTexture(GL10.GL_TEXTURE_2D, textureIds!![1])
                 texture = texturePage.getTexture(textureRectBack, PageSide.Back)
-                GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, texture, 0)
+                GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, texture.bitmap, 0)
                 texture.recycle()
             } else textureRectBack.set(textureRectFront)
             texturePage.recycle()

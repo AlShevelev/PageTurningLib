@@ -27,7 +27,7 @@ package com.shevelev.page_turning_lib.page_curling
 /**
  * Provider for feeding 'book' with bitmaps which are used for rendering pages.
  */
-interface PageProvider {
+interface PageTexturesManager {
     /**
      * Return number of pages available.
      */

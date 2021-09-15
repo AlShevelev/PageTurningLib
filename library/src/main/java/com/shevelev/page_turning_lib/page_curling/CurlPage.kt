@@ -28,6 +28,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.RectF
+import android.util.Log
 import androidx.annotation.ColorInt
 import java.lang.UnsupportedOperationException
 
@@ -41,8 +42,8 @@ class CurlPage {
     @ColorInt
     private var colorBack = Color.WHITE
 
-    private var textureFront: Bitmap = createSolidTexture(colorBack)
-    private var textureBack: Bitmap = createSolidTexture(colorFront)
+    private var textureFront: SmartBitmap = createSolidTexture(colorBack)
+    private var textureBack: SmartBitmap = createSolidTexture(colorFront)
 
     /**
      * Returns true if textures have changed.
@@ -88,10 +89,10 @@ class CurlPage {
      * filled with actual texture coordinates in this new upscaled texture
      * Bitmap.
      */
-    fun getTexture(textureRect: RectF, side: PageSide): Bitmap {
+    fun getTexture(textureRect: RectF, side: PageSide): SmartBitmap {
         return when (side) {
-            PageSide.Front -> getTexture(textureFront, textureRect)
-            PageSide.Back -> getTexture(textureBack, textureRect)
+            PageSide.Front -> createTexture(textureFront.bitmap, textureRect)
+            PageSide.Back -> createTexture(textureBack.bitmap, textureRect)
             else -> throw UnsupportedOperationException("This value is not supported: $side")
         }
     }
@@ -99,21 +100,20 @@ class CurlPage {
     /**
      * Setter for textures.
      */
-    fun setTexture(sourceTexture: Bitmap?, side: PageSide) {
-        val texture = sourceTexture ?: createSolidTexture(if (side == PageSide.Back) colorBack else colorFront)
-
+    fun setTexture(sourceTexture: SmartBitmap, side: PageSide) {
+        Log.d("TEXTURES", "source: ${sourceTexture.bitmap.hashCode()}; side: $side")
         when (side) {
             PageSide.Front -> {
                 textureFront.recycle()
-                textureFront = texture
+                textureFront = sourceTexture
             }
             PageSide.Back -> {
                 textureBack.recycle()
-                textureBack = texture
+                textureBack = sourceTexture
             }
             PageSide.Both -> {
-                setTexture(texture, PageSide.Front)
-                setTexture(texture, PageSide.Back)
+                setTexture(sourceTexture, PageSide.Front)
+                setTexture(sourceTexture, PageSide.Back)
             }
         }
         texturesChanged = true
@@ -163,7 +163,7 @@ class CurlPage {
      * new Bitmap using default return statement + original texture coordinates
      * are stored into RectF.
      */
-    private fun getTexture(bitmap: Bitmap, textureRect: RectF): Bitmap {
+    private fun createTexture(bitmap: Bitmap, textureRect: RectF): SmartBitmap {
         val w = bitmap.width
         val h = bitmap.height
 
@@ -180,15 +180,15 @@ class CurlPage {
         val texY = h.toFloat() / newH
         textureRect[0f, 0f, texX] = texY
 
-        return bitmapTex
+        return bitmapTex.toSmart(true)
     }
 
     /**
      * Create small texture filled by solid color
      */
-    private fun createSolidTexture(@ColorInt color: Int): Bitmap {
+    private fun createSolidTexture(@ColorInt color: Int): SmartBitmap {
         val bmp = Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565)
         bmp.eraseColor(color)
-        return bmp
+        return bmp.toSmart(true)
     }
 }

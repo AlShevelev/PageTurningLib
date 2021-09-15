@@ -87,7 +87,7 @@ constructor(
     private var pageLeft = CurlMesh(MAX_CURL_SPLITS)
     private var pageRight = CurlMesh(MAX_CURL_SPLITS)
 
-    private var pageProvider: PageProvider? = null
+    private var pageProvider: PageTexturesManager? = null
 
     private val pointerPos = PointerPosition(PointF(), 0f)
 
@@ -432,7 +432,7 @@ constructor(
     /**
      * Update/set page provider.
      */
-    fun setPageProvider(pageProvider: PageProvider?) {
+    fun setPageProvider(pageProvider: PageTexturesManager?) {
         this.pageProvider = pageProvider
     }
 
@@ -696,7 +696,8 @@ constructor(
     /**
      * Updates given CurlPage via PageProvider for page located at index.
      */
-    private fun updatePage(page: CurlPage, index: Int) { // First reset page to initial state.
+    private fun updatePage(page: CurlPage, index: Int) {
+        // First reset page to initial state.
         page.reset()
 
         // Ask page provider to fill it up with bitmaps and colors.
