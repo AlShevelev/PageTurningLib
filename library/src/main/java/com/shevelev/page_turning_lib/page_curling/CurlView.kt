@@ -33,7 +33,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
 import com.shevelev.page_turning_lib.page_curling.PointsHelper.getDistance
-import com.shevelev.page_turning_lib.page_curling.textures_manager.BitmapRepository
+import com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.BitmapProvider
+import com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.BitmapRepository
 import com.shevelev.page_turning_lib.page_curling.textures_manager.PageTexturesManager
 import com.shevelev.page_turning_lib.user_actions_managing.Area
 import com.shevelev.page_turning_lib.user_actions_managing.IUserActionsManaged
@@ -432,10 +433,10 @@ constructor(
     }
 
     /**
-     * Update/set bitmaps repository
+     * Update/set bitmaps provider
      */
-    fun setBitmapRepository(repository: BitmapRepository) {
-        this.texturesManager = PageTexturesManager(repository)
+    fun setBitmapProvider(provider: BitmapProvider) {
+        this.texturesManager = PageTexturesManager(BitmapRepository(provider))
     }
 
     /**

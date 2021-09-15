@@ -22,30 +22,28 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_test_app
+package com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import com.shevelev.page_turning_lib.page_curling.ResizingState
-import com.shevelev.page_turning_lib.page_curling.textures_manager.BitmapRepository
-import com.shevelev.page_turning_lib.page_curling.textures_manager.caching.BitmapCache
+import com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.caching.BitmapCache
 
 /**
- * Caches one bitmap of max size per page
+ * Repository for bitmaps
+ * Loads bitmaps and stores them into cache
  */
-class BitmapRepositoryImpl(private val context: Context) : BitmapRepository {
+class BitmapRepository(private val provider: BitmapProvider) {
     private val cachedBitmaps = BitmapCache(6)
 
-    override val pageCount: Int = 6
+    val pageCount: Int
+        get() = provider.total
 
-    private val bitmapIds = listOf(R.raw.p240035, R.raw.p7240031, R.raw.p7240039, R.raw.p8010067, R.raw.p8150085, R.raw.p8150090)
-
-    override fun getByIndex(index: Int, viewAreaWidth: Int, viewAreaHeight: Int): Bitmap =
+    fun getByIndex(index: Int, viewAreaWidth: Int, viewAreaHeight: Int): Bitmap =
         cachedBitmaps.get(index) { loadBitmap(index, viewAreaWidth, viewAreaHeight) }
 
     private fun loadBitmap(index: Int, viewAreaWidth: Int, viewAreaHeight: Int): Bitmap {
-        context.resources.openRawResource(bitmapIds[index]).use { stream ->
+        provider.getBitmapStream(index).use { stream ->
             val options = BitmapFactory.Options()
             options.inJustDecodeBounds = true
 
@@ -67,21 +65,20 @@ class BitmapRepositoryImpl(private val context: Context) : BitmapRepository {
         }
     }
 
-    companion object {
-        /**
-         * Calculate scaling factor (as power of 2)
-         */
-        fun calculateInSampleSize(imageWidth: Int, imageHeight: Int, viewAreaMaxWidth: Int, viewAreaMaxHeight: Int): Int {
-            var inSampleSize = 1
-            if (imageHeight > viewAreaMaxHeight || imageWidth > viewAreaMaxWidth) {
-                val halfHeight = imageHeight / 2
-                val halfWidth = imageWidth / 2
-                // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-// height and width larger than the requested height and width.
-                while (halfHeight / inSampleSize > viewAreaMaxHeight || (halfHeight / inSampleSize).toFloat() / viewAreaMaxHeight.toFloat() > 0.7f ||
-                    halfWidth / inSampleSize > viewAreaMaxHeight || (halfWidth / inSampleSize).toFloat() / viewAreaMaxHeight.toFloat() > 0.7f) inSampleSize *= 2
-            }
-            return inSampleSize
+    /**
+     * Calculate scaling factor (as power of 2)
+     */
+    private fun calculateInSampleSize(imageWidth: Int, imageHeight: Int, viewAreaMaxWidth: Int, viewAreaMaxHeight: Int): Int {
+        var inSampleSize = 1
+        if (imageHeight > viewAreaMaxHeight || imageWidth > viewAreaMaxWidth) {
+            val halfHeight = imageHeight / 2
+            val halfWidth = imageWidth / 2
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while (halfHeight / inSampleSize > viewAreaMaxHeight || (halfHeight / inSampleSize).toFloat() / viewAreaMaxHeight.toFloat() > 0.7f ||
+                halfWidth / inSampleSize > viewAreaMaxHeight || (halfWidth / inSampleSize).toFloat() / viewAreaMaxHeight.toFloat() > 0.7f) inSampleSize *= 2
         }
+        return inSampleSize
     }
 }

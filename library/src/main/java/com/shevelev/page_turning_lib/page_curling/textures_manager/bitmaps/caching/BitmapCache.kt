@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.page_curling.textures_manager.caching
+package com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.caching
 
 import android.graphics.Bitmap
 import android.util.LruCache

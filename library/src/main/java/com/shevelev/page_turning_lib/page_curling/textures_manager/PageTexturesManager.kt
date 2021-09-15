@@ -26,7 +26,8 @@ package com.shevelev.page_turning_lib.page_curling.textures_manager
 
 import android.graphics.*
 import com.shevelev.page_turning_lib.page_curling.*
-import com.shevelev.page_turning_lib.page_curling.textures_manager.caching.BitmapCache
+import com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.BitmapRepository
+import com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.caching.BitmapCache
 import java.io.IOException
 
 /**
