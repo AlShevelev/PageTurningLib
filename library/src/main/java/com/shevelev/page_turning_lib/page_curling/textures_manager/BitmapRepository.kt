@@ -1,4 +1,4 @@
-package com.shevelev.page_turning_test_app.page_provider
+package com.shevelev.page_turning_lib.page_curling.textures_manager
 
 import android.graphics.Bitmap
 

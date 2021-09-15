@@ -9,7 +9,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.shevelev.page_turning_lib.page_curling.CurlView
 import com.shevelev.page_turning_lib.page_curling.CurlViewEventsHandler
-import com.shevelev.page_turning_test_app.page_provider.PageTexturesManagerImpl
+import com.shevelev.page_turning_lib.page_curling.textures_manager.PageTexturesManager
 
 class CurlActivity : AppCompatActivity() {
     private var curlView: CurlView? = null
@@ -21,7 +21,7 @@ class CurlActivity : AppCompatActivity() {
 //        val currentPageIndex = DalFacade.Comics.getComicsById(comicsId)!!.lastViewedPageIndex
 
         curlView = (findViewById<View>(R.id.curl) as? CurlView)?.also {
-            it.setPageProvider(PageTexturesManagerImpl(this))
+            it.setBitmapRepository(BitmapRepositoryImpl(this))
             it.initCurrentPageIndex(0)
             it.setBackgroundColor(Color.WHITE/*-0xdfd7d0*/)
 

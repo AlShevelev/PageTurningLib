@@ -22,25 +22,26 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.page_curling
+package com.shevelev.page_turning_lib.page_curling.textures_manager.caching
+
+import android.graphics.Bitmap
+import android.util.LruCache
 
 /**
- * Provider for feeding 'book' with bitmaps which are used for rendering pages.
+ * Cache for bitmaps
+ * @param maxQuantity maximum quantity of bitmaps in the cache
  */
-interface PageTexturesManager {
-    /**
-     * Return number of pages available.
-     */
-    val pageCount: Int
+class BitmapCache(maxQuantity: Int): LruCache<Int, Bitmap>(maxQuantity) {
+    override fun entryRemoved(evicted: Boolean, key: Int?, oldValue: Bitmap?, newValue: Bitmap?) {
+        super.entryRemoved(evicted, key, oldValue, newValue)
+        oldValue?.recycle()
+    }
+
+    fun clear() = evictAll()
 
     /**
-     * Called once new bitmaps/textures are needed. Width and height are in
-     * pixels telling the size it will be drawn on screen and following them
-     * ensures that aspect ratio remains. But it's possible to return bitmap
-     * of any size though. You should use provided CurlPage for storing page
-     * information for requested page number.<br></br>
-     * <br></br>
-     * Index is a number between 0 and getBitmapCount() - 1.
+     * Returns a bitmap from the cache or create it if it doesn't exist
      */
-    fun updatePage(page: CurlPage, width: Int, height: Int, index: Int)
+    @Synchronized
+    fun get(key: Int, createAction: () -> Bitmap): Bitmap = get(key) ?: createAction().also { put(key, it) }
 }

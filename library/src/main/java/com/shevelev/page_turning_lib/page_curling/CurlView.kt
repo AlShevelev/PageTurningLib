@@ -33,6 +33,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
 import com.shevelev.page_turning_lib.page_curling.PointsHelper.getDistance
+import com.shevelev.page_turning_lib.page_curling.textures_manager.BitmapRepository
+import com.shevelev.page_turning_lib.page_curling.textures_manager.PageTexturesManager
 import com.shevelev.page_turning_lib.user_actions_managing.Area
 import com.shevelev.page_turning_lib.user_actions_managing.IUserActionsManaged
 import com.shevelev.page_turning_lib.user_actions_managing.UserActionManager
@@ -87,7 +89,7 @@ constructor(
     private var pageLeft = CurlMesh(MAX_CURL_SPLITS)
     private var pageRight = CurlMesh(MAX_CURL_SPLITS)
 
-    private var pageProvider: PageTexturesManager? = null
+    private var texturesManager: PageTexturesManager? = null
 
     private val pointerPos = PointerPosition(PointF(), 0f)
 
@@ -223,10 +225,10 @@ constructor(
         if (dragStartPos.x < halfX && currentPageIndex > 0) {
             dragStartPos.x = rightRect.left
             startCurl(CurlState.Left)
-        } else if (dragStartPos.x >= halfX && currentPageIndex < pageProvider!!.pageCount) {
+        } else if (dragStartPos.x >= halfX && currentPageIndex < texturesManager!!.pageCount) {
             dragStartPos.x = rightRect.right
 
-            if (!canCurlLastPage && currentPageIndex >= pageProvider!!.pageCount - 1) {
+            if (!canCurlLastPage && currentPageIndex >= texturesManager!!.pageCount - 1) {
                 return
             }
             startCurl(CurlState.Right)
@@ -383,7 +385,7 @@ constructor(
     }
 
     override fun onTouch(view: View, me: MotionEvent): Boolean {
-        if (animate || pageProvider == null) {
+        if (animate || texturesManager == null) {
             return false
         }
 
@@ -430,10 +432,10 @@ constructor(
     }
 
     /**
-     * Update/set page provider.
+     * Update/set bitmaps repository
      */
-    fun setPageProvider(pageProvider: PageTexturesManager?) {
-        this.pageProvider = pageProvider
+    fun setBitmapRepository(repository: BitmapRepository) {
+        this.texturesManager = PageTexturesManager(repository)
     }
 
     /**
@@ -573,7 +575,7 @@ constructor(
                     }
                 }
 
-                if (currentPageIndex < pageProvider!!.pageCount - 1) {
+                if (currentPageIndex < texturesManager!!.pageCount - 1) {
                     updatePage(pageRight.texturePage, currentPageIndex + 1)
                     pageRight.setRect(renderer.getPageRect(CurlState.Right)!!)
                     pageRight.setFlipTexture(false)
@@ -612,7 +614,7 @@ constructor(
                 }
 
                 // If there is something to show on right page add it to renderer.
-                if (currentPageIndex < pageProvider!!.pageCount) {
+                if (currentPageIndex < texturesManager!!.pageCount) {
                     pageRight.setFlipTexture(false)
                     pageRight.setRect(renderer.getPageRect(CurlState.Right)!!)
                     pageRight.reset()
@@ -701,14 +703,14 @@ constructor(
         page.reset()
 
         // Ask page provider to fill it up with bitmaps and colors.
-        pageProvider!!.updatePage(page, pageBitmapWidth, pageBitmapHeight, index)
+        texturesManager!!.updatePage(page, pageBitmapWidth, pageBitmapHeight, index)
     }
 
     /**
      * Updates bitmaps for page meshes.
      */
     private fun updatePages() {
-        if (pageProvider == null || pageBitmapWidth <= 0 || pageBitmapHeight <= 0) {
+        if (texturesManager == null || pageBitmapWidth <= 0 || pageBitmapHeight <= 0) {
             return
         }
 
@@ -728,7 +730,7 @@ constructor(
             ++rightIdx
         }
 
-        if (rightIdx >= 0 && rightIdx < pageProvider!!.pageCount) {
+        if (rightIdx >= 0 && rightIdx < texturesManager!!.pageCount) {
             updatePage(pageRight.texturePage, rightIdx)
             pageRight.setFlipTexture(false)
             pageRight.setRect(renderer.getPageRect(CurlState.Right)!!)
@@ -736,7 +738,7 @@ constructor(
             renderer.addCurlMesh(pageRight)
         }
 
-        if (leftIdx >= 0 && leftIdx < pageProvider!!.pageCount) {
+        if (leftIdx >= 0 && leftIdx < texturesManager!!.pageCount) {
             updatePage(pageLeft.texturePage, leftIdx)
             pageLeft.setFlipTexture(true)
             pageLeft.setRect(renderer.getPageRect(CurlState.Left)!!)
@@ -744,7 +746,7 @@ constructor(
             if (renderLeftPage) renderer.addCurlMesh(pageLeft)
         }
 
-        if (curlIdx >= 0 && curlIdx < pageProvider!!.pageCount) {
+        if (curlIdx >= 0 && curlIdx < texturesManager!!.pageCount) {
             updatePage(pageCurl.texturePage, curlIdx)
 
             if (curlState === CurlState.Right) {
