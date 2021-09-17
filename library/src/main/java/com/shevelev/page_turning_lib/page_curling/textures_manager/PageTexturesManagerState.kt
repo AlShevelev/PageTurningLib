@@ -22,21 +22,20 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.caching
+package com.shevelev.page_turning_lib.page_curling.textures_manager
 
-import android.graphics.Bitmap
-import android.util.LruCache
+import com.shevelev.page_turning_lib.page_curling.CurlPage
 
 /**
- * Cache for bitmaps
- * @param maxQuantity maximum quantity of bitmaps in the cache
+ * Internal state of [PageTexturesManager] class
+ * @property page updated page
+ * @property width page texture width
+ * @property height page texture height
+ * @property index page index
  */
-class BitmapCache(maxQuantity: Int): LruCache<Int, Bitmap>(maxQuantity) {
-    override fun entryRemoved(evicted: Boolean, key: Int?, oldValue: Bitmap?, newValue: Bitmap?) {
-        super.entryRemoved(evicted, key, oldValue, newValue)
-        oldValue?.recycle()
-    }
-
-    @Synchronized
-    fun getOrCreate(key: Int, createAction: () -> Bitmap): Bitmap = get(key) ?: createAction().also { put(key, it) }
-}
+class PageTexturesManagerState(
+    val page: CurlPage,
+    val width: Int,
+    val height: Int,
+    val index: Int
+)

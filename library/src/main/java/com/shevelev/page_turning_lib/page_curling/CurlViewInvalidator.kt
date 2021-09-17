@@ -22,21 +22,11 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.caching
+package com.shevelev.page_turning_lib.page_curling
 
-import android.graphics.Bitmap
-import android.util.LruCache
-
-/**
- * Cache for bitmaps
- * @param maxQuantity maximum quantity of bitmaps in the cache
- */
-class BitmapCache(maxQuantity: Int): LruCache<Int, Bitmap>(maxQuantity) {
-    override fun entryRemoved(evicted: Boolean, key: Int?, oldValue: Bitmap?, newValue: Bitmap?) {
-        super.entryRemoved(evicted, key, oldValue, newValue)
-        oldValue?.recycle()
-    }
-
-    @Synchronized
-    fun getOrCreate(key: Int, createAction: () -> Bitmap): Bitmap = get(key) ?: createAction().also { put(key, it) }
+interface CurlViewInvalidator {
+    /**
+     * Invalidate view by demand
+     */
+    fun renderNow()
 }

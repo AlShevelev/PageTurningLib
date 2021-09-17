@@ -26,21 +26,36 @@ package com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Handler
+import android.os.Message
 import com.shevelev.page_turning_lib.page_curling.ResizingState
 import com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.caching.BitmapCache
 
 /**
  * Repository for bitmaps
  * Loads bitmaps and stores them into cache
+ * @property provider a provider of bitmaps
+ * @property handler a handler for callbacks
  */
-class BitmapRepository(private val provider: BitmapProvider) {
+class BitmapRepository(
+    private val provider: BitmapProvider,
+    private val handler: Handler
+) {
     private val cachedBitmaps = BitmapCache(6)
 
     val pageCount: Int
         get() = provider.total
 
-    fun getByIndex(index: Int, viewAreaWidth: Int, viewAreaHeight: Int): Bitmap =
-        cachedBitmaps.get(index) { loadBitmap(index, viewAreaWidth, viewAreaHeight) }
+    fun tryGetByIndex(index: Int, viewAreaWidth: Int, viewAreaHeight: Int) {
+        val bitmap = cachedBitmaps.getOrCreate(index) { loadBitmap(index, viewAreaWidth, viewAreaHeight) }
+
+        val message = Message().apply {
+            what = BitmapRepositoryCallbackCodes.BITMAP
+            obj = bitmap
+        }
+
+        handler.sendMessage(message)
+    }
 
     private fun loadBitmap(index: Int, viewAreaWidth: Int, viewAreaHeight: Int): Bitmap {
         provider.getBitmapStream(index).use { stream ->

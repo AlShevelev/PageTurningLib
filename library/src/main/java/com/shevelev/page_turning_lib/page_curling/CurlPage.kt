@@ -101,7 +101,6 @@ class CurlPage {
      * Setter for textures.
      */
     fun setTexture(sourceTexture: SmartBitmap, side: PageSide) {
-        Log.d("TEXTURES", "source: ${sourceTexture.bitmap.hashCode()}; side: $side")
         when (side) {
             PageSide.Front -> {
                 textureFront.recycle()

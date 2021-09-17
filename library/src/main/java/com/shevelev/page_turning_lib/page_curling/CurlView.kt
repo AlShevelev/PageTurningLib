@@ -56,7 +56,8 @@ constructor(
 ) : GLSurfaceView(context, attrs),
     OnTouchListener,
     CurlRendererObserver,
-    IUserActionsManaged {
+    IUserActionsManaged,
+    CurlViewInvalidator {
 
     // Curl state. We are flipping none, left or right page.
     private var curlState = CurlState.None
@@ -405,6 +406,13 @@ constructor(
     }
 
     /**
+     * Invalidate view by demand
+     */
+    override fun renderNow() {
+        requestRender()
+    }
+
+    /**
      * Sets "hot" areas
      * @param areas a set of "special" areas, touch in them fires OneFingerDownInHotArea event
      */
@@ -436,7 +444,7 @@ constructor(
      * Update/set bitmaps provider
      */
     fun setBitmapProvider(provider: BitmapProvider) {
-        this.texturesManager = PageTexturesManager(BitmapRepository(provider))
+        this.texturesManager = PageTexturesManager(provider, this)
     }
 
     /**
