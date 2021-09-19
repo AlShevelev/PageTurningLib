@@ -22,26 +22,12 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps
+package com.shevelev.page_turning_lib.page_curling.textures_manager
 
-object BitmapRepositoryCallbackCodes {
-    /**
-     * A bitmap is received from the repository
-     */
-    const val BITMAP = 1
+interface PageLoadingEventsHandler {
+    fun onLoadingStarted()
 
-    /**
-     * A bitmap loading is started
-     */
-    const val LOADING_STARTED = 2
+    fun onLoadingCompleted()
 
-    /**
-     * A bitmap loading is completed
-     */
-    const val LOADING_COMPLETED = 3
-
-    /**
-     * An error occurred while loading a picture
-     */
-    const val ERROR = 4
+    fun onLoadingError()
 }

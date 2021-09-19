@@ -6,9 +6,12 @@ import android.graphics.Color
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.view.View
+import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.shevelev.page_turning_lib.page_curling.CurlView
 import com.shevelev.page_turning_lib.page_curling.CurlViewEventsHandler
+import com.shevelev.page_turning_lib.page_curling.textures_manager.PageLoadingEventsHandler
 
 class CurlActivity : AppCompatActivity() {
     private var curlView: CurlView? = null
@@ -24,13 +27,27 @@ class CurlActivity : AppCompatActivity() {
             it.initCurrentPageIndex(0)
             it.setBackgroundColor(Color.WHITE/*-0xdfd7d0*/)
 
-            it.setExternalEventsHandler(object: CurlViewEventsHandler{
+            it.setExternalEventsHandler(object: CurlViewEventsHandler {
                 override fun onPageChanged(newPageIndex: Int) {
                     // do nothing so far
                 }
 
                 override fun onHotAreaPressed(areaId: Int) {
                     // do nothing so far
+                }
+            })
+
+            it.setOnPageLoadingListener(object: PageLoadingEventsHandler {
+                override fun onLoadingStarted() {
+                    findViewById<ProgressBar>(R.id.progressBar).visibility = View.VISIBLE
+                }
+
+                override fun onLoadingCompleted() {
+                    findViewById<ProgressBar>(R.id.progressBar).visibility = View.GONE
+                }
+
+                override fun onLoadingError() {
+                    Toast.makeText(this@CurlActivity, R.string.generalError, Toast.LENGTH_SHORT).show()
                 }
             })
         }

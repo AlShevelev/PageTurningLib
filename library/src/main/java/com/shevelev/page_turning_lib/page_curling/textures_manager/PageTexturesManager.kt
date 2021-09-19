@@ -41,7 +41,7 @@ import com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.cachi
 class PageTexturesManager(
     provider: BitmapProvider,
     private val viewInvalidator: CurlViewInvalidator
-)  {
+) {
     val pageCount: Int
         get() = repository.pageCount
 
@@ -50,6 +50,8 @@ class PageTexturesManager(
     private val repository = BitmapRepository(provider, Handler(Looper.getMainLooper(), this::processRepositoryMessage))
 
     private var updatingState: PageTexturesManagerState? = null
+
+    private var loadingEventsHandler: PageLoadingEventsHandler? = null
 
     /**
      * Set bitmap for page - front and back (may be texture or solid color)
@@ -74,6 +76,10 @@ class PageTexturesManager(
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    fun setOnLoadingListener(handler: PageLoadingEventsHandler?) {
+        loadingEventsHandler = handler
     }
 
     private fun updatePage(page: CurlPage, texture: Bitmap) {
@@ -142,6 +148,12 @@ class PageTexturesManager(
 
                 updatingState = null
             }
+
+            BitmapRepositoryCallbackCodes.LOADING_STARTED -> loadingEventsHandler?.onLoadingStarted()
+
+            BitmapRepositoryCallbackCodes.LOADING_COMPLETED -> loadingEventsHandler?.onLoadingCompleted()
+
+            BitmapRepositoryCallbackCodes.ERROR -> loadingEventsHandler?.onLoadingError()
         }
         return true
     }

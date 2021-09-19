@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Page Turning Test App</string>
+
+    <string name="generalError">Oh… Something happened</string>
 </resources>

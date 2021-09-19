@@ -33,8 +33,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
 import com.shevelev.page_turning_lib.page_curling.PointsHelper.getDistance
+import com.shevelev.page_turning_lib.page_curling.textures_manager.PageLoadingEventsHandler
 import com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.BitmapProvider
-import com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.BitmapRepository
 import com.shevelev.page_turning_lib.page_curling.textures_manager.PageTexturesManager
 import com.shevelev.page_turning_lib.user_actions_managing.Area
 import com.shevelev.page_turning_lib.user_actions_managing.IUserActionsManaged
@@ -447,10 +447,14 @@ constructor(
         this.texturesManager = PageTexturesManager(provider, this)
     }
 
+    fun setOnPageLoadingListener(handler: PageLoadingEventsHandler?) {
+        texturesManager?.setOnLoadingListener(handler)
+    }
+
     /**
      * Set callback handlers
      */
-    fun setExternalEventsHandler(handler: CurlViewEventsHandler) {
+    fun setExternalEventsHandler(handler: CurlViewEventsHandler?) {
         externalEventsHandler = handler
     }
 
