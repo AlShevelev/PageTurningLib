@@ -22,21 +22,47 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.caching
+package com.shevelev.page_turning_lib.page_curling.textures_manager.repository
 
 import android.graphics.Bitmap
-import android.util.LruCache
+import android.os.Handler
+import android.os.Message
+import java.util.*
 
 /**
- * Cache for bitmaps
- * @param maxQuantity maximum quantity of bitmaps in the cache
+ * Repository for bitmaps
+ * Loads bitmaps and stores them into cache
+ * @property provider a provider of bitmaps
+ * @property handler a handler for callbacks
  */
-class BitmapCache(maxQuantity: Int): LruCache<Int, Bitmap>(maxQuantity) {
-    override fun entryRemoved(evicted: Boolean, key: Int?, oldValue: Bitmap?, newValue: Bitmap?) {
-        super.entryRemoved(evicted, key, oldValue, newValue)
-        oldValue?.recycle()
+class BitmapRepository(
+    private val provider: BitmapProvider,
+    private val handler: Handler
+) {
+    private val loader = BitmapLoader(provider)
+
+    private val cache = TreeMap<Int, Bitmap>()
+
+    val pageCount: Int
+        get() = provider.total
+
+    fun tryGetByIndex(index: Int, viewAreaWidth: Int, viewAreaHeight: Int) {
+        var bitmap = cache[index]
+
+        if(bitmap == null) {
+            bitmap = loader.loadBitmap(index, viewAreaWidth, viewAreaHeight)
+            cache[index] = bitmap
+        }
+
+        sendBitmapLoaded(bitmap)
     }
 
-    @Synchronized
-    fun getOrCreate(key: Int, createAction: () -> Bitmap): Bitmap = get(key) ?: createAction().also { put(key, it) }
+    private fun sendBitmapLoaded(bitmap: Bitmap) {
+        val message = Message().apply {
+            what = BitmapRepositoryCallbackCodes.BITMAP
+            obj = bitmap
+        }
+
+        handler.sendMessage(message)
+    }
 }

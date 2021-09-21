@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps
+package com.shevelev.page_turning_lib.page_curling.textures_manager.repository
 
 import java.io.InputStream
 

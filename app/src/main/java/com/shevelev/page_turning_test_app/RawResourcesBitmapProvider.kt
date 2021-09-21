@@ -25,7 +25,7 @@
 package com.shevelev.page_turning_test_app
 
 import android.content.Context
-import com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.BitmapProvider
+import com.shevelev.page_turning_lib.page_curling.textures_manager.repository.BitmapProvider
 import java.io.InputStream
 
 /**

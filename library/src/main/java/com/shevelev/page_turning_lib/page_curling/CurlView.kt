@@ -34,7 +34,7 @@ import android.view.View
 import android.view.View.OnTouchListener
 import com.shevelev.page_turning_lib.page_curling.PointsHelper.getDistance
 import com.shevelev.page_turning_lib.page_curling.textures_manager.PageLoadingEventsHandler
-import com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.BitmapProvider
+import com.shevelev.page_turning_lib.page_curling.textures_manager.repository.BitmapProvider
 import com.shevelev.page_turning_lib.page_curling.textures_manager.PageTexturesManager
 import com.shevelev.page_turning_lib.user_actions_managing.Area
 import com.shevelev.page_turning_lib.user_actions_managing.IUserActionsManaged

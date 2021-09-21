@@ -28,12 +28,11 @@ import android.graphics.*
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
-import android.util.Log
+import android.util.LruCache
 import com.shevelev.page_turning_lib.page_curling.*
-import com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.BitmapProvider
-import com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.BitmapRepository
-import com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.BitmapRepositoryCallbackCodes
-import com.shevelev.page_turning_lib.page_curling.textures_manager.bitmaps.caching.BitmapCache
+import com.shevelev.page_turning_lib.page_curling.textures_manager.repository.BitmapProvider
+import com.shevelev.page_turning_lib.page_curling.textures_manager.repository.BitmapRepository
+import com.shevelev.page_turning_lib.page_curling.textures_manager.repository.BitmapRepositoryCallbackCodes
 
 /**
  * Provide textures for pages and update pages
@@ -45,7 +44,12 @@ class PageTexturesManager(
     val pageCount: Int
         get() = repository.pageCount
 
-    private val cache = BitmapCache(4)
+    private val cache = object: LruCache<Int, Bitmap>(4) {
+        override fun entryRemoved(evicted: Boolean, key: Int?, oldValue: Bitmap?, newValue: Bitmap?) {
+            super.entryRemoved(evicted, key, oldValue, newValue)
+            oldValue?.recycle()
+        }
+    }
 
     private val repository = BitmapRepository(provider, Handler(Looper.getMainLooper(), this::processRepositoryMessage))
 
@@ -62,14 +66,11 @@ class PageTexturesManager(
      */
     fun updatePage(page: CurlPage, width: Int, height: Int, index: Int) {
         try {
-            Log.d("FIRST_PAGE", "updatePage()")
             val texture = cache.get(width xor index)
 
             if(texture != null) {
-                Log.d("FIRST_PAGE", "texture found")
                 updatePage(page, texture)
             } else {
-                Log.d("FIRST_PAGE", "load texture")
                 updatingState = PageTexturesManagerState(page, width, height, index)
                 repository.tryGetByIndex(index, width, height)
             }
@@ -84,7 +85,6 @@ class PageTexturesManager(
 
     private fun updatePage(page: CurlPage, texture: Bitmap) {
         texture.toSmart(false).let {
-            Log.d("FIRST_PAGE", "update with texture")
             page.setTexture(it, PageSide.Front)
             page.setTexture(it, PageSide.Back)
             page.setColor(Color.argb(50, 255, 255, 255), PageSide.Back)
