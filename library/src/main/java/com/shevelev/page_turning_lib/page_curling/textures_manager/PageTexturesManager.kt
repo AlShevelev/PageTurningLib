@@ -70,6 +70,7 @@ class PageTexturesManager(
 
             if(texture != null) {
                 updatePage(page, texture)
+                repository.sync(index, width, height)
             } else {
                 updatingState = PageTexturesManagerState(page, width, height, index)
                 repository.tryGetByIndex(index, width, height)
@@ -82,6 +83,8 @@ class PageTexturesManager(
     fun setOnLoadingListener(handler: PageLoadingEventsHandler?) {
         loadingEventsHandler = handler
     }
+
+    fun closeManager() = repository.closeRepository()
 
     private fun updatePage(page: CurlPage, texture: Bitmap) {
         texture.toSmart(false).let {
@@ -158,3 +161,5 @@ class PageTexturesManager(
         return true
     }
 }
+
+// If I'm gonna get rid of the cache, think how to recycle bitmaps

@@ -395,6 +395,11 @@ constructor(
         return true
     }
 
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        texturesManager?.closeManager()
+    }
+
     /**
      * Sets background color - or OpenGL clear color to be more precise. Color
      * is a 32bit value consisting of 0xAARRGGBB and is extracted using

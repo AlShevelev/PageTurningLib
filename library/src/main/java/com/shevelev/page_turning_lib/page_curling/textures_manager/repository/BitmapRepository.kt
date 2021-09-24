@@ -24,45 +24,94 @@
 
 package com.shevelev.page_turning_lib.page_curling.textures_manager.repository
 
-import android.graphics.Bitmap
 import android.os.Handler
-import android.os.Message
-import java.util.*
+import android.util.Log
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
 
 /**
  * Repository for bitmaps
  * Loads bitmaps and stores them into cache
  * @property provider a provider of bitmaps
- * @property handler a handler for callbacks
+ * @param handler a handler for callbacks
  */
 class BitmapRepository(
     private val provider: BitmapProvider,
-    private val handler: Handler
+    handler: Handler
 ) {
-    private val loader = BitmapLoader(provider)
+    private val messageSender = MessageSender(handler)
 
-    private val cache = TreeMap<Int, Bitmap>()
+    private val cache = ConcurrentCache(BitmapLoader(provider), provider.total)
+
+    private val loadingExecutor = Executors.newSingleThreadExecutor()
+
+    private var activeLoadingTask: Future<*>? = null
 
     val pageCount: Int
         get() = provider.total
 
     fun tryGetByIndex(index: Int, viewAreaWidth: Int, viewAreaHeight: Int) {
-        var bitmap = cache[index]
+        Log.w("BITMAP_LOADE2", "BitmapRepository::tryGetByIndex(index: $index) called")
+        val bitmap = cache[index]
 
-        if(bitmap == null) {
-            bitmap = loader.loadBitmap(index, viewAreaWidth, viewAreaHeight)
-            cache[index] = bitmap
+        activeLoadingTask = if(bitmap != null) {
+            messageSender.sendBitmapLoaded(bitmap)
+            loadingExecutor.submit { updateCacheSilent(index, viewAreaWidth, viewAreaHeight) }
+        } else {
+            loadingExecutor.submit { updateCache(index, viewAreaWidth, viewAreaHeight) }
         }
-
-        sendBitmapLoaded(bitmap)
     }
 
-    private fun sendBitmapLoaded(bitmap: Bitmap) {
-        val message = Message().apply {
-            what = BitmapRepositoryCallbackCodes.BITMAP
-            obj = bitmap
-        }
+    /**
+     * Updates cache without other actions
+     */
+    fun sync(index: Int, viewAreaWidth: Int, viewAreaHeight: Int) {
+        loadingExecutor.submit { updateCacheSilent(index, viewAreaWidth, viewAreaHeight) }
+    }
 
-        handler.sendMessage(message)
+    fun closeRepository() {
+        loadingExecutor.shutdown()
+        activeLoadingTask?.cancel(true)
+        cache.clear()
+    }
+
+    /**
+     * Updates cache by new data without loading indicator
+     * @param index loaded bitmap's index
+     * @param viewAreaWidth bitmap's width
+     * @param viewAreaHeight bitmap's height
+     */
+    private fun updateCacheSilent(index: Int, viewAreaWidth: Int, viewAreaHeight: Int) {
+        try {
+            Log.d("BITMAP_LOADER", "BitmapRepository::updateCacheSilent(index: $index) called")
+            cache.update(index, viewAreaWidth, viewAreaHeight)
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            messageSender.sendError(ex)
+        }
+    }
+
+    /**
+     * Updates cache by new data with loading indicator
+     * @param index loaded bitmap's index
+     * @param viewAreaWidth bitmap's width
+     * @param viewAreaHeight bitmap's height
+     */
+    private fun updateCache(index: Int, viewAreaWidth: Int, viewAreaHeight: Int) {
+        Log.d("BITMAP_LOADER", "BitmapRepository::updateCache(index: $index) called")
+        try {
+            messageSender.sendLoadingStarted()
+            cache.update(index, viewAreaWidth, viewAreaHeight)
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            messageSender.sendError(ex)
+        } finally {
+            messageSender.sendLoadingCompleted()
+            Log.d("BITMAP_LOADER", "BitmapRepository::loading completed")
+            cache[index]?.let {
+                Log.d("BITMAP_LOADER", "BitmapRepository::Bitmap sent")
+                messageSender.sendBitmapLoaded(it)
+            }
+        }
     }
 }
