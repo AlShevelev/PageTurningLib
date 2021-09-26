@@ -32,10 +32,12 @@ import com.shevelev.page_turning_lib.page_curling.CurlPage
  * @property width page texture width
  * @property height page texture height
  * @property index page index
+ * @property repositoryInitialized callback which is called when the repository is initialized
  */
 class PageTexturesManagerState(
-    val page: CurlPage,
+    val page: CurlPage? = null,
     val width: Int,
     val height: Int,
-    val index: Int
+    val index: Int,
+    val repositoryInitialized: (() -> Unit)? = null
 )

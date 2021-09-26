@@ -58,6 +58,22 @@ class PageTexturesManager(
     private var loadingEventsHandler: PageLoadingEventsHandler? = null
 
     /**
+     * Load initial bitmaps into the repository
+     * @param width page texture width
+     * @param height page texture height
+     * @param index start page index
+     * @param completed callback, which is called when the repository is initialized
+     */
+    fun init(width: Int, height: Int, index: Int, completed: () -> Unit) {
+        if(repository.isInitialized) {
+            completed()
+        } else {
+            updatingState = PageTexturesManagerState(width = width, height = height, index = index, repositoryInitialized = completed)
+            repository.init(index, width, height)
+        }
+    }
+
+    /**
      * Set bitmap for page - front and back (may be texture or solid color)
      * @param page updated page
      * @param width page texture width
@@ -146,10 +162,8 @@ class PageTexturesManager(
                 updatingState?.let { state ->
                     val texture = createTexture(state.width, state.height, sourceBitmap)
                     cache.put(state.width xor state.index, texture)
-                    updatePage(state.page, texture)
+                    updatePage(state.page!!, texture)
                 }
-
-                updatingState = null
             }
 
             BitmapRepositoryCallbackCodes.LOADING_STARTED -> loadingEventsHandler?.onLoadingStarted()
@@ -157,9 +171,12 @@ class PageTexturesManager(
             BitmapRepositoryCallbackCodes.LOADING_COMPLETED -> loadingEventsHandler?.onLoadingCompleted()
 
             BitmapRepositoryCallbackCodes.ERROR -> loadingEventsHandler?.onLoadingError()
+
+            BitmapRepositoryCallbackCodes.REPOSITORY_INITIALIZED -> {
+                updatingState?.repositoryInitialized?.invoke()
+            }
         }
+
         return true
     }
 }
-
-// If I'm gonna get rid of the cache, think how to recycle bitmaps

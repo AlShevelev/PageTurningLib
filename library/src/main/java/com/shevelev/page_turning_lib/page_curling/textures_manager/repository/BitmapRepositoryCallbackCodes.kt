@@ -44,4 +44,9 @@ object BitmapRepositoryCallbackCodes {
      * An error occurred while loading a picture
      */
     const val ERROR = 4
+
+    /**
+     * The cache has been initialized
+     */
+    const val REPOSITORY_INITIALIZED = 5
 }

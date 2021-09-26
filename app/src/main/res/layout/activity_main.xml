@@ -7,13 +7,29 @@
     tools:context=".MainActivity">
 
     <Button
-        android:id="@+id/start"
+        android:id="@+id/startFirst"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Start!"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="Start frorm the 1st page"
+        app:layout_constraintBottom_toTopOf="@+id/startThird"
+        app:layout_constraintHorizontal_bias="0.5"
+        android:textAllCaps="false"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <Button
+        android:id="@+id/startThird"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start frorm the 3rd page"
+        android:textAllCaps="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/startFirst" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -183,7 +183,7 @@ constructor(
     override fun onPageSizeChanged(width: Int, height: Int) {
         pageBitmapWidth = width
         pageBitmapHeight = height
-        updatePages()
+        initPages()
     }
 
     override fun onSurfaceCreated() {
@@ -430,8 +430,6 @@ constructor(
      */
     fun initCurrentPageIndex(currentPageIndex: Int) {
         this.currentPageIndex = currentPageIndex
-        updatePages()
-        requestRender()
     }
 
     /**
@@ -439,7 +437,7 @@ constructor(
      */
     fun setCurrentPageIndex(currentPageIndex: Int) {
         this.currentPageIndex = currentPageIndex
-        updatePages()
+        initPages()
         reset()
 
         externalEventsHandler?.onPageChanged(currentPageIndex)
@@ -727,56 +725,41 @@ constructor(
     /**
      * Updates bitmaps for page meshes.
      */
-    private fun updatePages() {
+    private fun initPages() {
         if (texturesManager == null || pageBitmapWidth <= 0 || pageBitmapHeight <= 0) {
             return
         }
 
-        // Remove meshes from renderer.
-        renderer.removeCurlMesh(pageLeft)
-        renderer.removeCurlMesh(pageRight)
-        renderer.removeCurlMesh(pageCurl)
-        var leftIdx = currentPageIndex - 1
-        var rightIdx = currentPageIndex
-        var curlIdx = -1
+        texturesManager?.init(pageBitmapWidth, pageBitmapHeight, currentPageIndex) {
+            // Remove meshes from renderer.
+            renderer.removeCurlMesh(pageLeft)
+            renderer.removeCurlMesh(pageRight)
+            renderer.removeCurlMesh(pageCurl)
 
-        if (curlState === CurlState.Left) {
-            curlIdx = leftIdx
-            --leftIdx
-        } else if (curlState === CurlState.Right) {
-            curlIdx = rightIdx
-            ++rightIdx
-        }
+            val leftIdx = currentPageIndex - 1
+            val rightIdx = currentPageIndex
 
-        if (rightIdx >= 0 && rightIdx < texturesManager!!.pageCount) {
-            updatePage(pageRight.texturePage, rightIdx)
-            pageRight.setFlipTexture(false)
-            pageRight.setRect(renderer.getPageRect(CurlState.Right)!!)
-            pageRight.reset()
-            renderer.addCurlMesh(pageRight)
-        }
+            val needToUpdateRightPage = rightIdx >= 0 && rightIdx < texturesManager!!.pageCount
+            val needToUpdateLeftPage = leftIdx >= 0 && leftIdx < texturesManager!!.pageCount && renderLeftPage
 
-        if (leftIdx >= 0 && leftIdx < texturesManager!!.pageCount) {
-            updatePage(pageLeft.texturePage, leftIdx)
-            pageLeft.setFlipTexture(true)
-            pageLeft.setRect(renderer.getPageRect(CurlState.Left)!!)
-            pageLeft.reset()
-            if (renderLeftPage) renderer.addCurlMesh(pageLeft)
-        }
-
-        if (curlIdx >= 0 && curlIdx < texturesManager!!.pageCount) {
-            updatePage(pageCurl.texturePage, curlIdx)
-
-            if (curlState === CurlState.Right) {
-                pageCurl.setFlipTexture(true)
-                pageCurl.setRect(renderer.getPageRect(CurlState.Right)!!)
-            } else {
-                pageCurl.setFlipTexture(false)
-                pageCurl.setRect(renderer.getPageRect(CurlState.Left)!!)
+            if (needToUpdateRightPage) {
+                updatePage(pageRight.texturePage, rightIdx)
+                pageRight.setFlipTexture(false)
+                pageRight.setRect(renderer.getPageRect(CurlState.Right)!!)
+                pageRight.reset()
+                renderer.addCurlMesh(pageRight)
             }
 
-            pageCurl.reset()
-            renderer.addCurlMesh(pageCurl)
+            // It's a dirty hack, I know. But we need to draw the second page with a slight delay in this concrete case
+            if (needToUpdateLeftPage) {
+                postDelayed({
+                    updatePage(pageLeft.texturePage, leftIdx)
+                    pageLeft.setFlipTexture(true)
+                    pageLeft.setRect(renderer.getPageRect(CurlState.Left)!!)
+                    pageLeft.reset()
+                    renderer.addCurlMesh(pageLeft)
+                }, 250L)
+            }
         }
     }
 

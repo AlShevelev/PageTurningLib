@@ -9,8 +9,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        findViewById<Button>(R.id.start).setOnClickListener {
-            CurlActivity.start(this)
+        findViewById<Button>(R.id.startFirst).setOnClickListener {
+            CurlActivity.start(this, 0)
+        }
+
+        findViewById<Button>(R.id.startThird).setOnClickListener {
+            CurlActivity.start(this, 2)
         }
     }
 }

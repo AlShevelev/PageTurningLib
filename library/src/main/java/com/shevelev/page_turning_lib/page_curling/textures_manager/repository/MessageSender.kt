@@ -29,35 +29,20 @@ import android.os.Handler
 import android.os.Message
 
 class MessageSender(private val handler: Handler) {
-    fun sendBitmapLoaded(bitmap: Bitmap) {
+    fun sendBitmapLoaded(bitmap: Bitmap) = send(BitmapRepositoryCallbackCodes.BITMAP, bitmap)
+
+    fun sendLoadingStarted() = send(BitmapRepositoryCallbackCodes.LOADING_STARTED)
+
+    fun sendLoadingCompleted() = send(BitmapRepositoryCallbackCodes.LOADING_COMPLETED)
+
+    fun sendError(ex: Exception) = send(BitmapRepositoryCallbackCodes.ERROR, ex)
+
+    fun sendRepositoryInitialized() = send(BitmapRepositoryCallbackCodes.REPOSITORY_INITIALIZED)
+
+    private fun send(code: Int, value: Any? = null) {
         val message = Message().apply {
-            what = BitmapRepositoryCallbackCodes.BITMAP
-            obj = bitmap
-        }
-
-        handler.sendMessage(message)
-    }
-
-    fun sendLoadingStarted() {
-        val message = Message().apply {
-            what = BitmapRepositoryCallbackCodes.LOADING_STARTED
-        }
-
-        handler.sendMessage(message)
-    }
-
-    fun sendLoadingCompleted() {
-        val message = Message().apply {
-            what = BitmapRepositoryCallbackCodes.LOADING_COMPLETED
-        }
-
-        handler.sendMessage(message)
-    }
-
-    fun sendError(ex: Exception) {
-        val message = Message().apply {
-            what = BitmapRepositoryCallbackCodes.ERROR
-            obj = ex
+            what = code
+            obj = value
         }
 
         handler.sendMessage(message)

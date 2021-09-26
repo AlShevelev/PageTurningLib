@@ -34,6 +34,10 @@ class ConcurrentCache(
 ) {
     private val cache = TreeMap<Int, Bitmap>()
 
+    val isEmpty: Boolean
+        @Synchronized
+        get() = cache.isEmpty()
+
     /**
      * Extract bitmap by its page index
      */

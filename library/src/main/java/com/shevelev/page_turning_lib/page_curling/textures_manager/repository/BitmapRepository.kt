@@ -47,6 +47,9 @@ class BitmapRepository(
 
     private var activeLoadingTask: Future<*>? = null
 
+    val isInitialized: Boolean
+        get() = !cache.isEmpty
+
     val pageCount: Int
         get() = provider.total
 
@@ -66,13 +69,17 @@ class BitmapRepository(
      * Updates cache without other actions
      */
     fun sync(index: Int, viewAreaWidth: Int, viewAreaHeight: Int) {
-        loadingExecutor.submit { updateCacheSilent(index, viewAreaWidth, viewAreaHeight) }
+        activeLoadingTask = loadingExecutor.submit { updateCacheSilent(index, viewAreaWidth, viewAreaHeight) }
     }
 
     fun closeRepository() {
         loadingExecutor.shutdown()
-        activeLoadingTask?.cancel(true)
+        activeLoadingTask?.takeIf { !it.isCancelled || !it.isDone }?.cancel(true)
         cache.clear()
+    }
+
+    fun init(index: Int, viewAreaWidth: Int, viewAreaHeight: Int) {
+        activeLoadingTask = loadingExecutor.submit { initCache(index, viewAreaWidth, viewAreaHeight) }
     }
 
     /**
@@ -111,6 +118,35 @@ class BitmapRepository(
             cache[index]?.let {
                 Log.d("BITMAP_LOADER", "BitmapRepository::Bitmap sent")
                 messageSender.sendBitmapLoaded(it)
+            }
+        }
+    }
+
+    /**
+     * Fills the cache by initial data
+     * @param index start bitmap's index
+     * @param viewAreaWidth bitmap's width
+     * @param viewAreaHeight bitmap's height
+     */
+    private fun initCache(index: Int, viewAreaWidth: Int, viewAreaHeight: Int) {
+        Log.d("BITMAP_LOADER", "BitmapRepository::initCache(index: $index) called")
+
+        var success = true
+
+        try {
+            messageSender.sendLoadingStarted()
+
+            cache.clear()
+            cache.update(index, viewAreaWidth, viewAreaHeight)
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            messageSender.sendError(ex)
+            success = false
+        } finally {
+            messageSender.sendLoadingCompleted()
+
+            if(success) {
+                messageSender.sendRepositoryInitialized()
             }
         }
     }

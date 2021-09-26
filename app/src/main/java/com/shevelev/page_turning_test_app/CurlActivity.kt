@@ -20,12 +20,11 @@ class CurlActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_curl)
-//        val currentPageIndex = DalFacade.Comics.getComicsById(comicsId)!!.lastViewedPageIndex
 
         curlView = (findViewById<View>(R.id.curl) as? CurlView)?.also {
             it.setBitmapProvider(RawResourcesBitmapProvider(this))
-            it.initCurrentPageIndex(0)
-            it.setBackgroundColor(Color.WHITE/*-0xdfd7d0*/)
+            it.initCurrentPageIndex(intent.getIntExtra(START_PAGE, 0))
+            it.setBackgroundColor(Color.WHITE)
 
             it.setExternalEventsHandler(object: CurlViewEventsHandler {
                 override fun onPageChanged(newPageIndex: Int) {
@@ -67,8 +66,10 @@ class CurlActivity : AppCompatActivity() {
     }
 
     companion object {
-        fun start(parentActivity: Activity) {
-            val intent = Intent(parentActivity, CurlActivity::class.java)
+        private const val START_PAGE = "START_PAGE"
+
+        fun start(parentActivity: Activity, startPage: Int) {
+            val intent = Intent(parentActivity, CurlActivity::class.java).putExtra(START_PAGE, startPage)
             parentActivity.startActivity(intent)
         }
     }
