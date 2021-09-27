@@ -9,6 +9,14 @@
         android:layout_height="fill_parent"
         android:id="@+id/curl"	/>
 
+    <ImageView
+        android:id="@+id/menu"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="start|top"
+        android:src="@drawable/ic_baseline_menu_24"
+        tools:ignore="ContentDescription" />
+
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyle"

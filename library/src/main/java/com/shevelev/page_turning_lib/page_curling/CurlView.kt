@@ -436,9 +436,10 @@ constructor(
      * Change index of current page and switch to this page
      */
     fun setCurrentPageIndex(currentPageIndex: Int) {
+        texturesManager?.reset()
         this.currentPageIndex = currentPageIndex
         initPages()
-        reset()
+//        reset()
 
         externalEventsHandler?.onPageChanged(currentPageIndex)
     }

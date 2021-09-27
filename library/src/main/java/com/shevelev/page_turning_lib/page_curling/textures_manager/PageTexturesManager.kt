@@ -100,6 +100,10 @@ class PageTexturesManager(
         loadingEventsHandler = handler
     }
 
+    fun reset() {
+        repository.reset()
+    }
+
     fun closeManager() = repository.closeRepository()
 
     private fun updatePage(page: CurlPage, texture: Bitmap) {

@@ -78,6 +78,8 @@ class BitmapRepository(
         cache.clear()
     }
 
+    fun reset() = cache.clear()
+
     fun init(index: Int, viewAreaWidth: Int, viewAreaHeight: Int) {
         activeLoadingTask = loadingExecutor.submit { initCache(index, viewAreaWidth, viewAreaHeight) }
     }
