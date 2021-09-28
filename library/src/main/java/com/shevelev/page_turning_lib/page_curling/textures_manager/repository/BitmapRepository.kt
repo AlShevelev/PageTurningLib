@@ -26,6 +26,7 @@ package com.shevelev.page_turning_lib.page_curling.textures_manager.repository
 
 import android.os.Handler
 import android.util.Log
+import android.util.Size
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
@@ -53,23 +54,23 @@ class BitmapRepository(
     val pageCount: Int
         get() = provider.total
 
-    fun tryGetByIndex(index: Int, viewAreaWidth: Int, viewAreaHeight: Int) {
+    fun tryGetByIndex(index: Int, viewAreaSize: Size) {
         Log.w("BITMAP_LOADE2", "BitmapRepository::tryGetByIndex(index: $index) called")
         val bitmap = cache[index]
 
         activeLoadingTask = if(bitmap != null) {
             messageSender.sendBitmapLoaded(bitmap)
-            loadingExecutor.submit { updateCacheSilent(index, viewAreaWidth, viewAreaHeight) }
+            loadingExecutor.submit { updateCacheSilent(index, viewAreaSize) }
         } else {
-            loadingExecutor.submit { updateCache(index, viewAreaWidth, viewAreaHeight) }
+            loadingExecutor.submit { updateCache(index, viewAreaSize) }
         }
     }
 
     /**
      * Updates cache without other actions
      */
-    fun sync(index: Int, viewAreaWidth: Int, viewAreaHeight: Int) {
-        activeLoadingTask = loadingExecutor.submit { updateCacheSilent(index, viewAreaWidth, viewAreaHeight) }
+    fun sync(index: Int, viewAreaSize: Size) {
+        activeLoadingTask = loadingExecutor.submit { updateCacheSilent(index, viewAreaSize) }
     }
 
     fun closeRepository() {
@@ -80,20 +81,19 @@ class BitmapRepository(
 
     fun reset() = cache.clear()
 
-    fun init(index: Int, viewAreaWidth: Int, viewAreaHeight: Int) {
-        activeLoadingTask = loadingExecutor.submit { initCache(index, viewAreaWidth, viewAreaHeight) }
+    fun init(index: Int, viewAreaSize: Size) {
+        activeLoadingTask = loadingExecutor.submit { initCache(index, viewAreaSize) }
     }
 
     /**
      * Updates cache by new data without loading indicator
      * @param index loaded bitmap's index
-     * @param viewAreaWidth bitmap's width
-     * @param viewAreaHeight bitmap's height
+     * @param viewAreaSize bitmap's size
      */
-    private fun updateCacheSilent(index: Int, viewAreaWidth: Int, viewAreaHeight: Int) {
+    private fun updateCacheSilent(index: Int, viewAreaSize: Size) {
         try {
             Log.d("BITMAP_LOADER", "BitmapRepository::updateCacheSilent(index: $index) called")
-            cache.update(index, viewAreaWidth, viewAreaHeight)
+            cache.update(index, viewAreaSize)
         } catch (ex: Exception) {
             ex.printStackTrace()
             messageSender.sendError(ex)
@@ -103,14 +103,13 @@ class BitmapRepository(
     /**
      * Updates cache by new data with loading indicator
      * @param index loaded bitmap's index
-     * @param viewAreaWidth bitmap's width
-     * @param viewAreaHeight bitmap's height
+     * @param viewAreaSize bitmap's size
      */
-    private fun updateCache(index: Int, viewAreaWidth: Int, viewAreaHeight: Int) {
+    private fun updateCache(index: Int, viewAreaSize: Size) {
         Log.d("BITMAP_LOADER", "BitmapRepository::updateCache(index: $index) called")
         try {
             messageSender.sendLoadingStarted()
-            cache.update(index, viewAreaWidth, viewAreaHeight)
+            cache.update(index, viewAreaSize)
         } catch (ex: Exception) {
             ex.printStackTrace()
             messageSender.sendError(ex)
@@ -127,10 +126,9 @@ class BitmapRepository(
     /**
      * Fills the cache by initial data
      * @param index start bitmap's index
-     * @param viewAreaWidth bitmap's width
-     * @param viewAreaHeight bitmap's height
+     * @param viewAreaSize bitmap's size
      */
-    private fun initCache(index: Int, viewAreaWidth: Int, viewAreaHeight: Int) {
+    private fun initCache(index: Int, viewAreaSize: Size) {
         Log.d("BITMAP_LOADER", "BitmapRepository::initCache(index: $index) called")
 
         var success = true
@@ -139,7 +137,7 @@ class BitmapRepository(
             messageSender.sendLoadingStarted()
 
             cache.clear()
-            cache.update(index, viewAreaWidth, viewAreaHeight)
+            cache.update(index, viewAreaSize)
         } catch (ex: Exception) {
             ex.printStackTrace()
             messageSender.sendError(ex)

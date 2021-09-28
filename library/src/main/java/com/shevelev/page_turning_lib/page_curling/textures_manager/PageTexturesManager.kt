@@ -29,6 +29,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Message
 import android.util.LruCache
+import android.util.Size
 import com.shevelev.page_turning_lib.page_curling.*
 import com.shevelev.page_turning_lib.page_curling.textures_manager.repository.BitmapProvider
 import com.shevelev.page_turning_lib.page_curling.textures_manager.repository.BitmapRepository
@@ -57,39 +58,45 @@ class PageTexturesManager(
 
     private var loadingEventsHandler: PageLoadingEventsHandler? = null
 
+    private var renderingTimes: Int = 1
+
     /**
      * Load initial bitmaps into the repository
-     * @param width page texture width
-     * @param height page texture height
+     * @param pageTextureSize page texture size
      * @param index start page index
+     * @param reset the cache must be clear
+     * @param updateTwoPagesNeeded If the value is "true" two pages are going to be updated (left and right)
      * @param completed callback, which is called when the repository is initialized
      */
-    fun init(width: Int, height: Int, index: Int, completed: () -> Unit) {
+    fun init(pageTextureSize: Size, index: Int, reset: Boolean, updateTwoPagesNeeded: Boolean, completed: () -> Unit) {
+        if(reset) {
+            reset(updateTwoPagesNeeded)
+        }
+
         if(repository.isInitialized) {
             completed()
         } else {
-            updatingState = PageTexturesManagerState(width = width, height = height, index = index, repositoryInitialized = completed)
-            repository.init(index, width, height)
+            updatingState = PageTexturesManagerState(textureSize = pageTextureSize, index = index, repositoryInitialized = completed)
+            repository.init(index, pageTextureSize)
         }
     }
 
     /**
      * Set bitmap for page - front and back (may be texture or solid color)
      * @param page updated page
-     * @param width page texture width
-     * @param height page texture height
+     * @param size page texture size
      * @param index page index
      */
-    fun updatePage(page: CurlPage, width: Int, height: Int, index: Int) {
+    fun updatePage(page: CurlPage, size: Size, index: Int) {
         try {
-            val texture = cache.get(width xor index)
+            val texture = cache.get(size.width xor index)
 
             if(texture != null) {
                 updatePage(page, texture)
-                repository.sync(index, width, height)
+                repository.sync(index, size)
             } else {
-                updatingState = PageTexturesManagerState(page, width, height, index)
-                repository.tryGetByIndex(index, width, height)
+                updatingState = PageTexturesManagerState(page, size, index)
+                repository.tryGetByIndex(index, size)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -100,11 +107,12 @@ class PageTexturesManager(
         loadingEventsHandler = handler
     }
 
-    fun reset() {
-        repository.reset()
-    }
-
     fun closeManager() = repository.closeRepository()
+
+    private fun reset(updateTwoPagesNeeded: Boolean) {
+        repository.reset()
+        renderingTimes = if(updateTwoPagesNeeded) 2 else 1
+    }
 
     private fun updatePage(page: CurlPage, texture: Bitmap) {
         texture.toSmart(false).let {
@@ -113,12 +121,15 @@ class PageTexturesManager(
             page.setColor(Color.argb(50, 255, 255, 255), PageSide.Back)
 
             // We need to re-render view manually
-            viewInvalidator.renderNow()
+            if(renderingTimes > 0) {
+                renderingTimes--
+                viewInvalidator.renderNow()
+            }
         }
     }
 
-    private fun createTexture(width: Int, height: Int, sourceBitmap: Bitmap): Bitmap {
-        val b = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565) // For memory saving
+    private fun createTexture(size: Size, sourceBitmap: Bitmap): Bitmap {
+        val b = Bitmap.createBitmap(size.width, size.height, Bitmap.Config.RGB_565) // For memory saving
         b.eraseColor(-0x1)
         val c = Canvas(b)
         val margin = 7
@@ -127,7 +138,7 @@ class PageTexturesManager(
         val border = 3
 
         // Image's frame
-        val r = Rect(margin, margin, width - margin, height - margin)
+        val r = Rect(margin, margin, size.width - margin, size.height - margin)
 
         // Scale image with saving proportions
         var imageWidth = r.width() - border * 2
@@ -164,8 +175,8 @@ class PageTexturesManager(
                 val sourceBitmap = message.obj as Bitmap
 
                 updatingState?.let { state ->
-                    val texture = createTexture(state.width, state.height, sourceBitmap)
-                    cache.put(state.width xor state.index, texture)
+                    val texture = createTexture(state.textureSize, sourceBitmap)
+                    cache.put(state.textureSize.width xor state.index, texture)
                     updatePage(state.page!!, texture)
                 }
             }

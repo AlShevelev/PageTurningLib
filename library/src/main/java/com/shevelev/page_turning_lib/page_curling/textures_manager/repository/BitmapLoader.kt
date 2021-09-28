@@ -26,6 +26,7 @@ package com.shevelev.page_turning_lib.page_curling.textures_manager.repository
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Size
 import com.shevelev.page_turning_lib.page_curling.ResizingState
 
 /**
@@ -33,7 +34,7 @@ import com.shevelev.page_turning_lib.page_curling.ResizingState
  * @property provider a provider of bitmaps
  */
 class BitmapLoader(private val provider: BitmapProvider) {
-    fun loadBitmap(index: Int, viewAreaWidth: Int, viewAreaHeight: Int): Bitmap {
+    fun loadBitmap(index: Int, viewAreaSize: Size): Bitmap {
         provider.getBitmapStream(index).use { stream ->
             val options = BitmapFactory.Options()
             options.inJustDecodeBounds = true
@@ -44,11 +45,13 @@ class BitmapLoader(private val provider: BitmapProvider) {
 
             stream.reset()
 
-            if (imageHeight <= viewAreaHeight || imageWidth <= viewAreaWidth) // Image is in-screen - decode it without scaling
+            // Image is in-screen - decode it without scaling
+            if (imageHeight <= viewAreaSize.height || imageWidth <= viewAreaSize.width) {
                 return BitmapFactory.decodeStream(stream)
+            }
 
-            val viewAreaMaxWidth = (viewAreaWidth * ResizingState.MAX_SCALE).toInt()
-            val viewAreaMaxHeight = (viewAreaHeight * ResizingState.MAX_SCALE).toInt() // Max possible image size
+            val viewAreaMaxWidth = (viewAreaSize.width * ResizingState.MAX_SCALE).toInt()
+            val viewAreaMaxHeight = (viewAreaSize.height * ResizingState.MAX_SCALE).toInt() // Max possible image size
             options.inJustDecodeBounds = false
             options.inSampleSize = calculateInSampleSize(imageWidth, imageHeight, viewAreaMaxWidth, viewAreaMaxHeight)
 

@@ -24,20 +24,19 @@
 
 package com.shevelev.page_turning_lib.page_curling.textures_manager
 
+import android.util.Size
 import com.shevelev.page_turning_lib.page_curling.CurlPage
 
 /**
  * Internal state of [PageTexturesManager] class
  * @property page updated page
- * @property width page texture width
- * @property height page texture height
+ * @property textureSize page texture size
  * @property index page index
  * @property repositoryInitialized callback which is called when the repository is initialized
  */
 class PageTexturesManagerState(
     val page: CurlPage? = null,
-    val width: Int,
-    val height: Int,
+    val textureSize: Size,
     val index: Int,
     val repositoryInitialized: (() -> Unit)? = null
 )

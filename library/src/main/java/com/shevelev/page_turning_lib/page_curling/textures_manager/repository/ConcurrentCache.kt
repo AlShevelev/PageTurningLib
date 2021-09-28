@@ -26,6 +26,7 @@ package com.shevelev.page_turning_lib.page_curling.textures_manager.repository
 
 import android.graphics.Bitmap
 import android.util.Log
+import android.util.Size
 import java.util.*
 
 class ConcurrentCache(
@@ -54,10 +55,9 @@ class ConcurrentCache(
     /**
      * Update the cache if it's needed
      * @param index loaded bitmap's index
-     * @param viewAreaWidth bitmap's width
-     * @param viewAreaHeight bitmap's height
+     * @param viewAreaSize bitmap's size
      */
-    fun update(index: Int, viewAreaWidth: Int, viewAreaHeight: Int) {
+    fun update(index: Int, viewAreaSize: Size) {
         if(needStop()) return
 
         Log.d("BITMAP_LOADER", "ConcurrentCache::update(index: $index) called")
@@ -77,7 +77,7 @@ class ConcurrentCache(
 
         val bitmapsToAdd = mutableListOf<Bitmap>()
         indexesToAdd.forEach {
-            bitmapsToAdd.add(bitmapLoader.loadBitmap(it, viewAreaWidth, viewAreaHeight))
+            bitmapsToAdd.add(bitmapLoader.loadBitmap(it, viewAreaSize))
 
             if(needStop()) return
         }

@@ -28,6 +28,7 @@ import android.content.Context
 import android.graphics.PointF
 import android.opengl.GLSurfaceView
 import android.util.AttributeSet
+import android.util.Log
 import android.util.Size
 import android.view.MotionEvent
 import android.view.View
@@ -166,7 +167,7 @@ constructor(
 
             externalEventsHandler?.onPageChanged(currentPageIndex)
 
-            requestRender()
+            renderNow()
         } else {
             // Processing an animation
             pointerPos.pos.set(animationSource)
@@ -183,7 +184,7 @@ constructor(
     override fun onPageSizeChanged(width: Int, height: Int) {
         pageBitmapWidth = width
         pageBitmapHeight = height
-        initPages()
+        initPages(false)
     }
 
     override fun onSurfaceCreated() {
@@ -284,7 +285,7 @@ constructor(
             }
             animate = true
             renderer.setDragging(draggingState.reset())
-            requestRender()
+            renderNow()
         }
     }
 
@@ -312,7 +313,7 @@ constructor(
 
         animate = true
         renderer.setDragging(draggingState.reset())
-        requestRender()
+        renderNow()
     }
 
     override fun startResizing() {
@@ -338,7 +339,7 @@ constructor(
             viewStateCodes = if (resizingState!!.isResized) ViewStateCodes.Resized else ViewStateCodes.NotResized
             resizingPointsDistance = newResizingPointsDistance
             renderer.setScale(resizingState!!.scaleFactor)
-            requestRender() // Update frame
+            renderNow() // Update frame
         }
     }
 
@@ -353,10 +354,10 @@ constructor(
         draggingState.setCurrentMargins(margins)
         renderer.setScale(1f)
 
-        requestRender()
+        renderNow()
         if (viewStateCodes === ViewStateCodes.NotResized) {
             renderer.setDragging(draggingState.reset()) // Place to center
-            requestRender()
+            renderNow()
         }
     }
 
@@ -371,7 +372,7 @@ constructor(
         val deltaY = point.y - firstDraggingPoint!!.y
 
         renderer.setDragging(draggingState.processDragging(deltaX, deltaY))
-        requestRender() // Update frame
+        renderNow() // Update frame
     }
 
     override fun completeDragging(point: PointF) {
@@ -407,13 +408,14 @@ constructor(
      */
     override fun setBackgroundColor(color: Int) {
         renderer.setBackgroundColor(color)
-        requestRender()
+        renderNow()
     }
 
     /**
      * Invalidate view by demand
      */
     override fun renderNow() {
+        Log.d("RENDER_NOW", "pageIndex: $currentPageIndex")
         requestRender()
     }
 
@@ -436,10 +438,8 @@ constructor(
      * Change index of current page and switch to this page
      */
     fun setCurrentPageIndex(currentPageIndex: Int) {
-        texturesManager?.reset()
         this.currentPageIndex = currentPageIndex
-        initPages()
-//        reset()
+        initPages(true)
 
         externalEventsHandler?.onPageChanged(currentPageIndex)
     }
@@ -477,11 +477,11 @@ constructor(
     private fun reset() {
         renderer.setDragging(draggingState.reset()) // Reset dragging
 
-        requestRender()
+        renderNow()
         pageLeft.setFlipTexture(true)
         renderer.setViewMode()
 
-        requestRender()
+        renderNow()
 
         resizingState = ResizingState(Margins(0f, 0f, 0f, 0f), 1f) // Original size
         renderer.setMargins(resizingState!!.margins!!)
@@ -505,7 +505,7 @@ constructor(
 
             if (curlPos.x >= pageRect!!.right) {
                 pageCurl.reset()
-                requestRender()
+                renderNow()
                 return
             }
 
@@ -530,7 +530,7 @@ constructor(
 
             if (curlPos.x <= pageRect!!.left) {
                 pageCurl.reset()
-                requestRender()
+                renderNow()
                 return
             }
 
@@ -562,7 +562,7 @@ constructor(
         } else {
             pageCurl.reset()
         }
-        requestRender()
+        renderNow()
     }
 
     /**
@@ -720,28 +720,33 @@ constructor(
         page.reset()
 
         // Ask page provider to fill it up with bitmaps and colors.
-        texturesManager!!.updatePage(page, pageBitmapWidth, pageBitmapHeight, index)
+        texturesManager!!.updatePage(page, Size(pageBitmapWidth, pageBitmapHeight), index)
     }
 
     /**
      * Updates bitmaps for page meshes.
      */
-    private fun initPages() {
+    private fun initPages(resetTextureManager: Boolean) {
         if (texturesManager == null || pageBitmapWidth <= 0 || pageBitmapHeight <= 0) {
             return
         }
 
-        texturesManager?.init(pageBitmapWidth, pageBitmapHeight, currentPageIndex) {
+        val leftIdx = currentPageIndex - 1
+        val rightIdx = currentPageIndex
+
+        val needToUpdateRightPage = rightIdx >= 0 && rightIdx < texturesManager!!.pageCount
+        val needToUpdateLeftPage = leftIdx >= 0 && leftIdx < texturesManager!!.pageCount && renderLeftPage
+
+        texturesManager?.init(
+            Size(pageBitmapWidth, pageBitmapHeight),
+            currentPageIndex,
+            reset = resetTextureManager,
+            updateTwoPagesNeeded = needToUpdateRightPage && needToUpdateLeftPage
+        ) {
             // Remove meshes from renderer.
             renderer.removeCurlMesh(pageLeft)
             renderer.removeCurlMesh(pageRight)
             renderer.removeCurlMesh(pageCurl)
-
-            val leftIdx = currentPageIndex - 1
-            val rightIdx = currentPageIndex
-
-            val needToUpdateRightPage = rightIdx >= 0 && rightIdx < texturesManager!!.pageCount
-            val needToUpdateLeftPage = leftIdx >= 0 && leftIdx < texturesManager!!.pageCount && renderLeftPage
 
             if (needToUpdateRightPage) {
                 updatePage(pageRight.texturePage, rightIdx)
