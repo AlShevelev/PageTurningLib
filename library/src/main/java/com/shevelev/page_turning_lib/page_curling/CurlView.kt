@@ -28,7 +28,6 @@ import android.content.Context
 import android.graphics.PointF
 import android.opengl.GLSurfaceView
 import android.util.AttributeSet
-import android.util.Log
 import android.util.Size
 import android.view.MotionEvent
 import android.view.View
@@ -414,10 +413,7 @@ constructor(
     /**
      * Invalidate view by demand
      */
-    override fun renderNow() {
-        Log.d("RENDER_NOW", "pageIndex: $currentPageIndex")
-        requestRender()
-    }
+    override fun renderNow() = requestRender()
 
     /**
      * Sets "hot" areas

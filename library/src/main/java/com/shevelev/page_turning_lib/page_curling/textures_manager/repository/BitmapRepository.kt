@@ -25,7 +25,6 @@
 package com.shevelev.page_turning_lib.page_curling.textures_manager.repository
 
 import android.os.Handler
-import android.util.Log
 import android.util.Size
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
@@ -55,7 +54,6 @@ class BitmapRepository(
         get() = provider.total
 
     fun tryGetByIndex(index: Int, viewAreaSize: Size) {
-        Log.w("BITMAP_LOADE2", "BitmapRepository::tryGetByIndex(index: $index) called")
         val bitmap = cache[index]
 
         activeLoadingTask = if(bitmap != null) {
@@ -92,7 +90,6 @@ class BitmapRepository(
      */
     private fun updateCacheSilent(index: Int, viewAreaSize: Size) {
         try {
-            Log.d("BITMAP_LOADER", "BitmapRepository::updateCacheSilent(index: $index) called")
             cache.update(index, viewAreaSize)
         } catch (ex: Exception) {
             ex.printStackTrace()
@@ -106,7 +103,6 @@ class BitmapRepository(
      * @param viewAreaSize bitmap's size
      */
     private fun updateCache(index: Int, viewAreaSize: Size) {
-        Log.d("BITMAP_LOADER", "BitmapRepository::updateCache(index: $index) called")
         try {
             messageSender.sendLoadingStarted()
             cache.update(index, viewAreaSize)
@@ -115,9 +111,7 @@ class BitmapRepository(
             messageSender.sendError(ex)
         } finally {
             messageSender.sendLoadingCompleted()
-            Log.d("BITMAP_LOADER", "BitmapRepository::loading completed")
             cache[index]?.let {
-                Log.d("BITMAP_LOADER", "BitmapRepository::Bitmap sent")
                 messageSender.sendBitmapLoaded(it)
             }
         }
@@ -129,8 +123,6 @@ class BitmapRepository(
      * @param viewAreaSize bitmap's size
      */
     private fun initCache(index: Int, viewAreaSize: Size) {
-        Log.d("BITMAP_LOADER", "BitmapRepository::initCache(index: $index) called")
-
         var success = true
 
         try {

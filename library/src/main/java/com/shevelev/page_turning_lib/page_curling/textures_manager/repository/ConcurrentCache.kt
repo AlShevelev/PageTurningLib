@@ -25,7 +25,6 @@
 package com.shevelev.page_turning_lib.page_curling.textures_manager.repository
 
 import android.graphics.Bitmap
-import android.util.Log
 import android.util.Size
 import java.util.*
 
@@ -60,18 +59,11 @@ class ConcurrentCache(
     fun update(index: Int, viewAreaSize: Size) {
         if(needStop()) return
 
-        Log.d("BITMAP_LOADER", "ConcurrentCache::update(index: $index) called")
-
         val currentIndexes = getAllKeys()
-        Log.d("BITMAP_LOADER", "ConcurrentCache::update. currentIndexes: [${currentIndexes.joinToString(", ")}]")
         val targetIndexes = getTargetInCacheIndexes(index)
-        Log.d("BITMAP_LOADER", "ConcurrentCache::update. targetIndexes: [${targetIndexes.joinToString(", ")}]")
 
         val indexesToRemove = currentIndexes - targetIndexes
         val indexesToAdd = targetIndexes - currentIndexes
-
-        Log.d("BITMAP_LOADER", "ConcurrentCache::update. indexesToRemove: [${indexesToRemove.joinToString(", ")}]")
-        Log.d("BITMAP_LOADER", "ConcurrentCache::update. indexesToAdd: [${indexesToAdd.joinToString(", ")}]")
 
         if(needStop()) return
 
