@@ -19,20 +19,24 @@ import com.shevelev.page_turning_lib.user_actions_managing.Point
 class CurlActivity : AppCompatActivity() {
     private var curlView: CurlView? = null
 
+    private var currentPageIndex: Int? = null
+
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_curl)
 
+        currentPageIndex = savedInstanceState?.getInt(CURRENT_PAGE) ?: intent.getIntExtra(START_PAGE, 0)
+
         curlView = (findViewById<View>(R.id.curl) as? CurlView)?.also {
             it.setBitmapProvider(RawResourcesBitmapProvider(this))
-            it.initCurrentPageIndex(intent.getIntExtra(START_PAGE, 0))
+            it.initCurrentPageIndex(currentPageIndex!!)
             it.setBackgroundColor(Color.WHITE)
             it.setHotAreas(listOf(Area(0, Point(0, 0), Size(100, 100))))
 
             it.setExternalEventsHandler(object: CurlViewEventsHandler {
                 override fun onPageChanged(newPageIndex: Int) {
-                    // do nothing so far
+                    currentPageIndex = newPageIndex
                 }
 
                 override fun onHotAreaPressed(areaId: Int) {
@@ -70,8 +74,14 @@ class CurlActivity : AppCompatActivity() {
         curlView!!.onResume()
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(CURRENT_PAGE, currentPageIndex ?: 0)
+    }
+
     companion object {
         private const val START_PAGE = "START_PAGE"
+        private const val CURRENT_PAGE = "CURRENT_PAGE"
 
         fun start(parentActivity: Activity, startPage: Int) {
             val intent = Intent(parentActivity, CurlActivity::class.java).putExtra(START_PAGE, startPage)

@@ -142,8 +142,8 @@ class EventsTransformer {
 
     private fun calculateNonCurlingArea(): Range<Int>? =
         screenSize?.let {
-            // 1/8 and 1/16 part of relative width
-            val areaWidthFactor = if(it.width < it.height) 0.125f else 0.0625f
+            // 1/5 and 1/10 part of relative width
+            val areaWidthFactor = if(it.width < it.height) 0.2f else 0.1f
 
             val lower = (it.width*areaWidthFactor).toInt()
             Range(lower, it.width - lower)
