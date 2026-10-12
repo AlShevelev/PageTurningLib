@@ -1,3 +1,0 @@
-include ':library'
-include ':app'
-rootProject.name = "Page Turning Test App"
